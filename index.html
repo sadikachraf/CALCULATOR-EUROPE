@@ -7,397 +7,164 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--surface:#fff;--surface2:#f0ede8;--surface3:#e5e2dc;
+  --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.16);
+  --text:#1a1a18;--text2:#5a5955;--text3:#9a9895;
+  --green:#0f6e56;--green-l:#e1f5ee;--green-d:#0a4a39;
+  --red:#c0392b;--red-l:#fdf0ee;--red-t:#8b1e14;
+  --amber:#b87a0f;--amber-l:#fef3df;
+  --blue:#1a5fa8;--blue-l:#e8f0fa;
+  --r:10px;--rs:6px;--rx:4px;
+  --sh:0 1px 3px rgba(0,0,0,0.07),0 1px 2px rgba(0,0,0,0.05);
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#18181a;--surface:#222224;--surface2:#2a2a2c;--surface3:#323234;
+  --border:rgba(255,255,255,0.09);--border2:rgba(255,255,255,0.18);
+  --text:#f0ede8;--text2:#a09d98;--text3:#68665f;
+  --green-l:#0d2e25;--green-d:#5dcaa5;--red-l:#2e1210;--red-t:#f09595;
+  --amber-l:#2a2010;--blue-l:#101a2e;
+}}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
 
-  :root {
-    --bg: #f5f4f0;
-    --surface: #ffffff;
-    --surface2: #f0ede8;
-    --border: rgba(0,0,0,0.1);
-    --border2: rgba(0,0,0,0.18);
-    --text: #1a1a18;
-    --text2: #5a5955;
-    --text3: #8a8880;
-    --green: #0f6e56;
-    --green-light: #e1f5ee;
-    --green-text: #0a4a39;
-    --red: #c0392b;
-    --red-light: #fdf0ee;
-    --red-text: #8b1e14;
-    --amber: #b87a0f;
-    --amber-light: #fdf3df;
-    --radius: 10px;
-    --radius-sm: 6px;
-    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.05);
-  }
+/* HEADER */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;position:sticky;top:0;z-index:200;box-shadow:var(--sh)}
+.hi{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:.875rem;height:50px}
+.logo{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:700;color:var(--text);text-decoration:none;flex-shrink:0}
+.logo-icon{width:26px;height:26px;background:var(--green);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:800}
+.csel{padding:5px 8px;border-radius:var(--rs);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12px;font-weight:500;cursor:pointer}
+.hsep{flex:1}
+.rbadge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:3px 8px;border-radius:20px;border:1px solid;flex-shrink:0}
+.rbadge.live{background:var(--green-l);color:var(--green-d);border-color:var(--green)}
+.rbadge.fallback{background:var(--amber-l);color:var(--amber);border-color:var(--amber)}
+.rdot{width:5px;height:5px;border-radius:50%;background:currentColor}
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #18181a;
-      --surface: #222224;
-      --surface2: #2a2a2c;
-      --border: rgba(255,255,255,0.1);
-      --border2: rgba(255,255,255,0.18);
-      --text: #f0ede8;
-      --text2: #a09d98;
-      --text3: #6a6865;
-      --green-light: #0d2e25;
-      --green-text: #5dcaa5;
-      --red-light: #2e1210;
-      --red-text: #f09595;
-      --amber-light: #2a2010;
-    }
-  }
+/* RATES BAR */
+.rates-bar{background:var(--surface);border-bottom:1px solid var(--border);font-size:12px}
+.rates-toggle{max-width:1200px;margin:0 auto;padding:0 2rem;height:30px;display:flex;align-items:center;gap:1.25rem;cursor:pointer;user-select:none;color:var(--text2)}
+.rates-toggle:hover{background:var(--surface2)}
+.ri strong{color:var(--text);font-weight:600}
+.rtbtn{margin-left:auto;font-size:11px;color:var(--text3)}
+.rates-exp{display:none;border-top:1px solid var(--border);background:var(--surface2)}
+.rates-exp.open{display:block}
+.rates-exp-inner{max-width:1200px;margin:0 auto;padding:.625rem 2rem;display:flex;gap:1.25rem;flex-wrap:wrap}
 
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    font-size: 14px;
-    line-height: 1.5;
-    min-height: 100vh;
-  }
+/* SKU BANNER */
+.sku-banner{background:var(--blue-l);border-bottom:2px solid var(--blue);padding:.5rem 2rem;display:none}
+.sku-banner-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:.625rem;font-size:13px;font-weight:600;color:var(--blue)}
+.sku-pill{background:var(--blue);color:#fff;padding:2px 10px;border-radius:4px;font-size:12px}
+.sku-clear{font-size:11px;font-weight:400;cursor:pointer;text-decoration:underline;margin-left:auto;color:var(--blue)}
 
-  /* ── HEADER ── */
-  header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 2rem;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: var(--shadow);
-  }
-  .header-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    height: 56px;
-  }
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text);
-    text-decoration: none;
-  }
-  .logo-icon {
-    width: 28px;
-    height: 28px;
-    background: var(--green);
-    border-radius: 7px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 14px;
-  }
-  .header-sep { flex: 1; }
-  .rate-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 12px;
-    font-weight: 500;
-    padding: 4px 10px;
-    border-radius: 20px;
-    border: 1px solid;
-  }
-  .rate-badge.live { background: var(--green-light); color: var(--green-text); border-color: var(--green); }
-  .rate-badge.fallback { background: var(--amber-light); color: var(--amber); border-color: var(--amber); }
-  .rate-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-  .country-select {
-    padding: 6px 10px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border2);
-    background: var(--surface2);
-    color: var(--text);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-  }
+/* MAIN */
+main{max-width:1200px;margin:0 auto;padding:1.25rem 2rem 4rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;box-shadow:var(--sh)}
+.ctitle{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:.875rem}
+.sh{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px}
+.ss{font-size:12px;color:var(--text2);margin-bottom:1rem}
 
-  /* ── LAYOUT ── */
-  main { max-width: 1200px; margin: 0 auto; padding: 1.5rem 2rem 4rem; }
+/* GRIDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.ga{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:.875rem}
+.gf{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+@media(max-width:680px){.g2,.g4{grid-template-columns:1fr 1fr}main{padding:1rem}}
+@media(max-width:440px){.g2{grid-template-columns:1fr}.g4{grid-template-columns:1fr 1fr}}
 
-  /* ── CARDS ── */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    box-shadow: var(--shadow);
-  }
-  .card + .card, .card + .grid-2, .grid-2 + .card, .grid-2 + .grid-2 { margin-top: 1rem; }
-  .card-title {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: var(--text3);
-    margin-bottom: 1.25rem;
-  }
-  .section-heading {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 4px;
-  }
-  .section-sub {
-    font-size: 12px;
-    color: var(--text2);
-    margin-bottom: 1.25rem;
-  }
+/* FIELDS + TOOLTIPS */
+.field{display:flex;flex-direction:column;gap:3px}
+.fl{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:500;color:var(--text2)}
+.tip{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:var(--surface3);border:1px solid var(--border2);color:var(--text3);font-size:9px;font-weight:700;cursor:help;position:relative;flex-shrink:0;line-height:1}
+.tip::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--text);color:var(--surface);font-size:11px;padding:5px 9px;border-radius:5px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:999;width:max-content;max-width:200px;white-space:normal;text-align:center;font-weight:400;line-height:1.4}
+.tip:hover::after{opacity:1}
+.tag{display:inline-block;font-size:10px;font-weight:500;background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:1px 5px;color:var(--text3);vertical-align:middle}
+input[type=number],input[type=text],select{width:100%;padding:7px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:13px;outline:none;transition:border-color .15s}
+input:focus,select:focus{border-color:var(--green)}
 
-  /* ── GRID ── */
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-  .grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; }
-  .grid-fees { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+/* LINKED BOX */
+.lbox{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:.875rem 1.25rem;margin-bottom:1rem}
+.lboxtitle{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:.625rem;display:flex;align-items:center;gap:5px}
 
-  @media (max-width: 700px) {
-    .grid-2, .grid-4 { grid-template-columns: 1fr 1fr; }
-    main { padding: 1rem; }
-    header { padding: 0 1rem; }
-  }
-  @media (max-width: 480px) {
-    .grid-2 { grid-template-columns: 1fr; }
-    .grid-4 { grid-template-columns: 1fr 1fr; }
-  }
+/* CHIPS */
+.chip{background:var(--surface2);border-radius:var(--rs);padding:.75rem 1rem}
+.clbl{font-size:11px;color:var(--text2);margin-bottom:3px}
+.cval{font-size:19px;font-weight:700;color:var(--text)}
+.cval.sm{font-size:14px;font-weight:600}
+.chip.green{background:var(--green)}.chip.green .clbl{color:rgba(255,255,255,.6)}.chip.green .cval{color:#fff}
 
-  /* ── INPUTS ── */
-  .field { display: flex; flex-direction: column; gap: 3px; }
-  .field label { font-size: 12px; font-weight: 500; color: var(--text2); }
-  .field .hint { font-size: 11px; color: var(--text3); margin-bottom: 2px; }
-  input[type="number"], input[type="text"], select {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid var(--border2);
-    border-radius: var(--radius-sm);
-    background: var(--surface2);
-    color: var(--text);
-    font-size: 13px;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-  input:focus, select:focus { border-color: var(--green); }
-  .tag {
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 500;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 1px 5px;
-    color: var(--text3);
-    vertical-align: middle;
-    margin-left: 4px;
-  }
+/* FEE CHIPS */
+.fc{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:.625rem .75rem}
+.fcl{font-size:10px;color:var(--text3);margin-bottom:3px}
+.fcv{font-size:15px;font-weight:700;color:var(--text);margin-bottom:2px}
+.fcs{font-size:10px;color:var(--text3)}
 
-  /* ── LINKED INPUTS ── */
-  .linked-box {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem 1.25rem;
-  }
-  .linked-box-title {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text2);
-    margin-bottom: .875rem;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .linked-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+/* P&L */
+.plr{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--text2)}
+.plr:last-child{border-bottom:none}
+.plr.tot{color:var(--text);font-weight:700;font-size:14px;padding-top:9px;border-top:1px solid var(--border2);margin-top:3px;border-bottom:none}
 
-  /* ── STAT CHIPS ── */
-  .chip {
-    background: var(--surface2);
-    border-radius: var(--radius-sm);
-    padding: .875rem 1rem;
-  }
-  .chip-label { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
-  .chip-value { font-size: 20px; font-weight: 600; color: var(--text); }
-  .chip-value.sm { font-size: 15px; }
-  .chip.green { background: var(--green); }
-  .chip.green .chip-label { color: rgba(255,255,255,0.65); }
-  .chip.green .chip-value { color: white; }
+/* BREAKEVEN */
+.beg{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.875rem}
+.beb{background:var(--surface2);border-radius:var(--r);padding:.875rem 1rem}
+.beb.hl{border:2px solid var(--green)}.beb.hl.loss{border-color:var(--red)}
+.bebl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:4px}
+.bebv{font-size:28px;font-weight:800;line-height:1}
+.bebs{font-size:11px;color:var(--text3);margin-top:4px}
+.besr{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
+.besr:last-child{border-bottom:none}
+.besv{font-weight:700;font-size:13px;color:var(--text)}
 
-  /* ── FEE CHIP ── */
-  .fee-chip {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: .75rem .875rem;
-  }
-  .fee-chip-label { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
-  .fee-chip-value { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
-  .fee-chip-sub { font-size: 10px; color: var(--text3); }
+/* UPLOAD */
+.uzone{border:2px dashed var(--border2);border-radius:var(--r);padding:1.75rem 1.5rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;background:var(--surface2)}
+.uzone:hover,.uzone.drag{border-color:var(--green);background:var(--green-l)}
+#file-input{display:none}
+.cmap{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.75rem;margin-top:.875rem}
+.ptw{overflow-x:auto;margin-top:.875rem;border-radius:var(--rs);border:1px solid var(--border)}
+.ptbl{width:100%;border-collapse:collapse;font-size:12px}
+.ptbl th{text-align:left;padding:6px 10px;background:var(--surface2);border-bottom:1px solid var(--border2);font-weight:600;font-size:11px;color:var(--text2);white-space:nowrap}
+.ptbl td{padding:5px 10px;border-bottom:1px solid var(--border);color:var(--text);white-space:nowrap}
+.ptbl tr:last-child td{border-bottom:none}
+.rpill{display:inline-flex;align-items:center;gap:6px;padding:.5rem .875rem;border-radius:var(--rs);border:1px solid var(--border);background:var(--surface);font-size:12px}
+.rpill strong{font-size:15px;font-weight:700}
 
-  /* ── P&L TABLE ── */
-  .pl-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 13px;
-    color: var(--text2);
-  }
-  .pl-row:last-child { border-bottom: none; }
-  .pl-row.total {
-    color: var(--text);
-    font-weight: 600;
-    font-size: 15px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border2);
-    border-bottom: none;
-    margin-top: 4px;
-  }
-  .pos { color: var(--green) !important; }
-  .neg { color: var(--red) !important; }
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;border:none;transition:opacity .15s}
+.bg{background:var(--green);color:#fff}.bg:hover{opacity:.88}
+.bo{background:transparent;border:1px solid var(--border2);color:var(--text)}.bo:hover{background:var(--surface2)}
 
-  /* ── BREAKEVEN BOX ── */
-  .be-card {
-    border: 2px solid var(--green);
-    border-radius: var(--radius);
-    padding: .875rem 1rem;
-    margin-bottom: 1.25rem;
-  }
-  .be-card.loss { border-color: var(--red); }
-  .be-card-label {
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    color: var(--text3);
-    margin-bottom: 4px;
-  }
-  .be-card-value { font-size: 32px; font-weight: 700; }
+/* ALERTS */
+.alert{padding:.5rem .875rem;border-radius:var(--rs);font-size:12px;margin-top:.625rem;border:1px solid}
+.alert.info{background:var(--green-l);color:var(--green-d);border-color:var(--green)}
+.alert.warn{background:var(--amber-l);color:var(--amber);border-color:var(--amber)}
+.alert.error{background:var(--red-l);color:var(--red-t);border-color:var(--red)}
 
-  /* ── DIVIDER ── */
-  .divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
+/* SECTION DIVIDER */
+.sdiv{display:flex;align-items:center;gap:.75rem;margin:1.5rem 0 .875rem}
+.sdivl{flex:1;height:1px;background:var(--border)}
+.sdivc{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);white-space:nowrap}
+.divider{height:1px;background:var(--border);margin:.875rem 0}
 
-  /* ── UPLOAD SECTION ── */
-  .upload-zone {
-    border: 2px dashed var(--border2);
-    border-radius: var(--radius);
-    padding: 2.5rem 1.5rem;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color .2s, background .2s;
-    background: var(--surface2);
-  }
-  .upload-zone:hover, .upload-zone.drag { border-color: var(--green); background: var(--green-light); }
-  .upload-icon { font-size: 2rem; margin-bottom: .75rem; }
-  .upload-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
-  .upload-sub { font-size: 12px; color: var(--text2); }
-  #file-input { display: none; }
+/* PROJECTOR */
+.ptoggle{display:flex;background:var(--surface2);border-radius:var(--rs);border:1px solid var(--border);overflow:hidden;width:fit-content}
+.pbtn{padding:5px 13px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:background .15s,color .15s}
+.pbtn.active{background:var(--green);color:#fff}
+.pout{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:.875rem}
+.pc{background:var(--surface2);border-radius:var(--rs);padding:.75rem 1rem}
+.pcl{font-size:11px;color:var(--text2);margin-bottom:3px}
+.pcv{font-size:17px;font-weight:700;color:var(--text)}
+.target-box{margin-top:.875rem;padding:.875rem 1rem;background:var(--blue-l);border-radius:var(--r);border:1px solid var(--blue)}
 
-  .col-mapper {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: .75rem;
-    margin-top: 1rem;
-  }
-  .preview-table-wrap { overflow-x: auto; margin-top: 1rem; }
-  .preview-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .preview-table th {
-    text-align: left;
-    padding: 6px 10px;
-    background: var(--surface2);
-    border-bottom: 2px solid var(--border2);
-    font-weight: 600;
-    font-size: 11px;
-    color: var(--text2);
-    white-space: nowrap;
-  }
-  .preview-table td {
-    padding: 5px 10px;
-    border-bottom: 1px solid var(--border);
-    color: var(--text);
-    white-space: nowrap;
-  }
-  .preview-table tr:last-child td { border-bottom: none; }
-
-  .result-pills { display: flex; gap: .75rem; margin-top: 1rem; flex-wrap: wrap; }
-  .result-pill {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: .75rem 1.25rem;
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    background: var(--surface);
-    font-size: 13px;
-  }
-  .result-pill strong { font-size: 18px; font-weight: 700; }
-
-  .apply-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 1rem;
-    padding: 9px 18px;
-    background: var(--green);
-    color: white;
-    border: none;
-    border-radius: var(--radius-sm);
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity .15s;
-  }
-  .apply-btn:hover { opacity: .88; }
-  .apply-btn:disabled { opacity: .45; cursor: not-allowed; }
-
-  .alert {
-    padding: .75rem 1rem;
-    border-radius: var(--radius-sm);
-    font-size: 12px;
-    margin-top: .75rem;
-  }
-  .alert.info { background: var(--green-light); color: var(--green-text); border: 1px solid var(--green); }
-  .alert.warn { background: var(--amber-light); color: var(--amber); border: 1px solid var(--amber); }
-  .alert.error { background: var(--red-light); color: var(--red-text); border: 1px solid var(--red); }
-
-  .hidden { display: none !important; }
-
-  /* ── SECTION DIVIDER ── */
-  .section-divider {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin: 2rem 0 1.25rem;
-  }
-  .section-divider-line { flex: 1; height: 1px; background: var(--border); }
-  .section-divider-label {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    color: var(--text3);
-    white-space: nowrap;
-  }
+.hidden{display:none!important}
+.pos{color:var(--green)!important}.neg{color:var(--red)!important}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="header-inner">
-    <a class="logo" href="#">
-      <span class="logo-icon">€</span>
-      COD Calc Europe
-    </a>
-    <select class="country-select" id="country">
+  <div class="hi">
+    <a class="logo" href="#"><span class="logo-icon">€</span>COD Calc — Europe</a>
+    <select class="csel" id="country">
       <option value="hungary">🇭🇺 Hungary (HUF)</option>
       <option value="romania">🇷🇴 Romania (RON)</option>
       <option value="bulgaria">🇧🇬 Bulgaria (BGN)</option>
@@ -409,631 +176,486 @@
       <option value="croatia">🇭🇷 Croatia (EUR)</option>
       <option value="austria">🇦🇹 Austria (EUR)</option>
     </select>
-    <span class="header-sep"></span>
-    <span id="rate-badge" class="rate-badge fallback">
-      <span class="rate-dot"></span>
-      <span id="rate-badge-text">Fetching rates…</span>
-    </span>
+    <span class="hsep"></span>
+    <span id="rbadge" class="rbadge fallback"><span class="rdot"></span><span id="rbtext">Fetching…</span></span>
   </div>
 </header>
 
+<!-- COMPACT RATES BAR -->
+<div class="rates-bar">
+  <div class="rates-toggle" onclick="toggleRates()">
+    <span class="ri">EUR/USD <strong id="rb-eurusd">1.1713</strong></span>
+    <span class="ri" id="rb-local-wrap">HUF/EUR <strong id="rb-local">0.002797</strong></span>
+    <span class="rtbtn" id="rtlbl">▾ edit rates</span>
+  </div>
+  <div class="rates-exp" id="rexp">
+    <div class="rates-exp-inner">
+      <div class="field" style="min-width:150px">
+        <div class="fl">EUR → USD <span class="tip" data-tip="Euro to US Dollar. Fetched live from ECB.">?</span></div>
+        <input type="number" id="eurUsd" value="1.1713" step="0.0001" min="0.01" oninput="onRateChange()">
+      </div>
+      <div class="field" id="localRateField" style="min-width:150px">
+        <div class="fl"><span id="lrlabel">HUF → EUR</span> <span class="tip" data-tip="Local currency to Euro. Auto-filled from ECB.">?</span></div>
+        <input type="number" id="localToEur" value="0.002797" step="0.000001" min="0.000001" oninput="onRateChange()">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SKU BANNER -->
+<div class="sku-banner" id="sku-banner">
+  <div class="sku-banner-inner">
+    <span>🎯 SKU:</span>
+    <span class="sku-pill" id="sku-pill-name">—</span>
+    <span id="sku-order-count" style="font-size:12px;font-weight:400"></span>
+    <span class="sku-clear" onclick="clearSKU()">✕ Clear</span>
+  </div>
+</div>
+
 <main>
 
-  <!-- ══ UPLOAD SECTION ══ -->
-  <div class="section-divider">
-    <span class="section-divider-label">📂 Auto-calculate AOV & AOQ from your orders</span>
-    <span class="section-divider-line"></span>
-  </div>
-
+  <!-- UPLOAD -->
+  <div class="sdiv"><span class="sdivc">📂 Upload orders — auto AOV &amp; AOQ</span><span class="sdivl"></span></div>
   <div class="card">
-    <p class="card-title">Upload order data — CSV or Excel</p>
-
-    <div class="upload-zone" id="upload-zone">
-      <div class="upload-icon">📄</div>
-      <div class="upload-title">Drop your orders file here</div>
-      <div class="upload-sub">Supports .csv, .xlsx, .xls — click or drag &amp; drop</div>
+    <p class="ctitle">CSV or Excel order export</p>
+    <div class="uzone" id="uzone">
+      <div style="font-size:1.75rem;margin-bottom:.5rem">📄</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:3px">Drop your orders file here</div>
+      <div style="font-size:12px;color:var(--text2)">.csv · .xlsx · .xls — click or drag &amp; drop</div>
       <input type="file" id="file-input" accept=".csv,.xlsx,.xls">
     </div>
-
     <div id="upload-status"></div>
 
-    <div id="col-mapper-section" class="hidden">
+    <div id="mapper" class="hidden">
       <div class="divider"></div>
-      <p style="font-size:13px;font-weight:600;margin-bottom:.75rem">Map your columns</p>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:.75rem">Tell us which column contains the order quantity and which contains the order total (in local currency).</p>
-      <div class="col-mapper">
+      <p style="font-size:13px;font-weight:600;margin-bottom:3px">Map your columns</p>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:.5rem">We try to auto-detect. Adjust if needed.</p>
+      <div class="cmap">
         <div class="field">
-          <label>Order Total column <span class="tag">local currency</span></label>
+          <div class="fl">Order Total <span class="tag">local currency</span></div>
           <select id="col-total"><option value="">— select —</option></select>
         </div>
         <div class="field">
-          <label>Quantity column <span class="tag">units per order</span></label>
-          <select id="col-qty"><option value="">— select — (optional)</option></select>
+          <div class="fl">Quantity <span class="tag">optional</span></div>
+          <select id="col-qty"><option value="">— skip —</option></select>
         </div>
         <div class="field">
-          <label>Order ID column <span class="tag">optional</span></label>
-          <select id="col-id"><option value="">— select —</option></select>
+          <div class="fl">SKU / Product <span class="tag">optional</span></div>
+          <select id="col-sku"><option value="">— skip —</option></select>
         </div>
       </div>
-      <button class="apply-btn" id="calc-upload-btn" onclick="calcFromUpload()">⚡ Calculate AOV &amp; AOQ</button>
+      <!-- SKU filter -->
+      <div id="sku-filter-row" class="hidden" style="margin-top:.875rem;display:flex;align-items:flex-end;gap:.75rem;flex-wrap:wrap">
+        <div class="field" style="min-width:220px">
+          <div class="fl">🎯 Filter by SKU</div>
+          <select id="sku-select"><option value="">All SKUs</option></select>
+        </div>
+        <button class="btn bo" onclick="resetSKU()" style="height:34px">Clear filter</button>
+      </div>
+      <div style="margin-top:.875rem">
+        <button class="btn bg" onclick="calcFromUpload()">⚡ Calculate AOV &amp; AOQ</button>
+      </div>
     </div>
 
+    <!-- Results -->
     <div id="upload-results" class="hidden">
       <div class="divider"></div>
-      <p style="font-size:13px;font-weight:600;margin-bottom:.5rem">Results from your data</p>
-      <div class="result-pills">
-        <div class="result-pill">
-          <span>📦 Orders analysed:</span>
-          <strong id="res-orders">0</strong>
-        </div>
-        <div class="result-pill">
-          <span>💰 AOV:</span>
-          <strong id="res-aov">0</strong>
-          <span id="res-curr" style="color:var(--text3);font-size:12px"></span>
-        </div>
-        <div class="result-pill">
-          <span>🛒 AOQ:</span>
-          <strong id="res-aoq">1.00</strong>
-          <span style="color:var(--text3);font-size:12px">units/order</span>
-        </div>
+      <p style="font-size:13px;font-weight:600;margin-bottom:.5rem">Results</p>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">
+        <div class="rpill">📦 Orders <strong id="res-orders">0</strong></div>
+        <div class="rpill">💰 AOV <strong id="res-aov">0</strong> <span id="res-curr" style="color:var(--text3);font-size:11px"></span></div>
+        <div class="rpill">🛒 AOQ <strong id="res-aoq">1.00</strong> <span style="color:var(--text3);font-size:11px">units/order</span></div>
+        <div class="rpill">📊 Total <strong id="res-total">0</strong> <span id="res-total-curr" style="color:var(--text3);font-size:11px"></span></div>
       </div>
-      <button class="apply-btn" onclick="applyToCalc()">↓ Apply to calculator</button>
+      <button class="btn bg" onclick="applyToCalc()">↓ Apply to calculator</button>
     </div>
 
+    <!-- Preview -->
     <div id="preview-section" class="hidden">
       <div class="divider"></div>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:.5rem">Preview (first 5 rows)</p>
-      <div class="preview-table-wrap">
-        <table class="preview-table" id="preview-table"></table>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.375rem">
+        <p style="font-size:12px;color:var(--text2);font-weight:600" id="preview-lbl">Preview — first 5 rows</p>
+        <span id="preview-info" style="font-size:11px;color:var(--text3)"></span>
       </div>
+      <div class="ptw"><table class="ptbl" id="preview-table"></table></div>
     </div>
   </div>
 
-  <!-- ══ CALCULATOR ══ -->
-  <div class="section-divider" style="margin-top:2rem">
-    <span class="section-divider-label">🧮 Profit Calculator</span>
-    <span class="section-divider-line"></span>
-  </div>
+  <!-- CALCULATOR -->
+  <div class="sdiv" style="margin-top:1.5rem"><span class="sdivc">🧮 Profit Calculator</span><span class="sdivl"></span></div>
 
-  <!-- Exchange Rates -->
   <div class="card">
-    <p class="card-title">Exchange Rates</p>
-    <div class="grid-auto">
-      <div class="field">
-        <label>EUR → USD</label>
-        <div class="hint" id="eur-usd-hint">1 EUR = ? USD</div>
-        <input type="number" id="eurUsd" value="1.1713" step="0.0001" min="0.01" oninput="calc()">
-      </div>
-      <div class="field" id="localRateField">
-        <label id="local-rate-label">HUF → EUR</label>
-        <div class="hint" id="local-rate-hint">1 HUF = ? EUR</div>
-        <input type="number" id="localToEur" value="0.002797" step="0.000001" min="0.000001" oninput="calc()">
-      </div>
-    </div>
-  </div>
-
-  <!-- Inputs -->
-  <div class="card" style="margin-top:1rem">
-    <p class="card-title">Inputs &amp; Assumptions</p>
-
-    <!-- AOV + AOQ linked box -->
-    <div class="linked-box" style="margin-bottom:1.25rem">
-      <div class="linked-box-title">
-        🔗 AOV &amp; AOQ
-        <span style="font-size:11px;font-weight:400;color:var(--text3)">— linked through unit price · change either one</span>
-      </div>
-      <div class="linked-grid">
+    <p class="ctitle">Inputs &amp; Assumptions</p>
+    <div class="lbox">
+      <div class="lboxtitle">🔗 AOV &amp; AOQ <span style="font-size:11px;font-weight:400;color:var(--text3)">— linked · change either one</span></div>
+      <div class="g2" style="gap:.75rem">
         <div class="field">
-          <label>AOV <span class="tag" id="aov-curr-tag">HUF</span></label>
-          <div class="hint">Average order value</div>
+          <div class="fl">AOV <span class="tag" id="aov-curr-tag">HUF</span> <span class="tip" data-tip="Average order value in local currency. Updates when AOQ changes.">?</span></div>
           <input type="number" id="aov" value="14900" step="1" min="0" oninput="onAOVChange()">
         </div>
         <div class="field">
-          <label>AOQ <span class="tag">units / order</span></label>
-          <div class="hint">Average order quantity</div>
+          <div class="fl">AOQ <span class="tag">units/order</span> <span class="tip" data-tip="Average order quantity — units per order. Updates when AOV changes.">?</span></div>
           <input type="number" id="aoq" value="1" step="0.01" min="0.01" oninput="onAOQChange()">
         </div>
       </div>
     </div>
-
-    <div class="grid-auto">
+    <div class="ga">
       <div class="field">
-        <label>Unit Price <span class="tag" id="up-curr-tag">HUF</span></label>
-        <div class="hint">Selling price per unit</div>
+        <div class="fl">Unit Price <span class="tag" id="up-curr-tag">HUF</span> <span class="tip" data-tip="Selling price per single unit in local currency.">?</span></div>
         <input type="number" id="unitPrice" value="14900" step="1" min="0.01" oninput="onUnitPriceChange()">
       </div>
       <div class="field">
-        <label>Product Cost / Unit <span class="tag">EUR</span></label>
-        <div class="hint">Your COGS per unit</div>
+        <div class="fl">Product Cost/Unit <span class="tag">EUR</span> <span class="tip" data-tip="Cost of goods per unit in Euros (COGS).">?</span></div>
         <input type="number" id="productCost" value="5" step="0.01" min="0" oninput="calc()">
       </div>
       <div class="field">
-        <label>Cost per Lead <span class="tag">USD</span></label>
-        <div class="hint">CPL from ad campaigns</div>
+        <div class="fl">Cost per Lead <span class="tag">USD</span> <span class="tip" data-tip="Average CPL from your ad campaigns.">?</span></div>
         <input type="number" id="cpl" value="0.50" step="0.01" min="0" oninput="calc()">
       </div>
       <div class="field">
-        <label>Confirmation Rate (%)</label>
-        <div class="hint">% of leads confirmed</div>
+        <div class="fl">Confirmation Rate <span class="tag">%</span> <span class="tip" data-tip="% of leads that confirm with the call center.">?</span></div>
         <input type="number" id="crInput" value="65" step="1" min="0" max="100" oninput="calc()">
       </div>
       <div class="field">
-        <label>Delivery Rate (%)</label>
-        <div class="hint">% of confirmed delivered</div>
+        <div class="fl">Delivery Rate <span class="tag">%</span> <span class="tip" data-tip="% of confirmed orders successfully delivered.">?</span></div>
         <input type="number" id="drInput" value="65" step="1" min="0" max="100" oninput="calc()">
       </div>
       <div class="field">
-        <label>Leads at Scale</label>
-        <div class="hint">For P&amp;L projection</div>
+        <div class="fl">Leads at Scale <span class="tip" data-tip="Number of leads for the full P&L projection in Section 2.">?</span></div>
         <input type="number" id="leadsScale" value="1000" step="1" min="1" oninput="calc()">
       </div>
     </div>
-
-    <!-- Quick display -->
-    <div style="display:flex;gap:.75rem;margin-top:1.25rem;flex-wrap:wrap">
-      <div class="chip green" style="min-width:110px">
-        <div class="chip-label">AOV (USD)</div>
-        <div class="chip-value" id="d-aov-usd">$0.00</div>
-      </div>
-      <div class="chip" style="min-width:110px">
-        <div class="chip-label">AOV (EUR)</div>
-        <div class="chip-value" id="d-aov-eur">€0.00</div>
-      </div>
-      <div class="chip" style="min-width:120px">
-        <div class="chip-label">AOV (<span id="d-local-curr">HUF</span>)</div>
-        <div class="chip-value" id="d-aov-local">0</div>
-      </div>
-      <div class="chip" style="min-width:140px">
-        <div class="chip-label">Net / delivered (ex-ads)</div>
-        <div class="chip-value" id="d-net">$0.00</div>
-      </div>
+    <div style="display:flex;gap:.625rem;margin-top:1rem;flex-wrap:wrap">
+      <div class="chip green" style="min-width:105px"><div class="clbl">AOV (USD)</div><div class="cval" id="d-aov-usd">$0.00</div></div>
+      <div class="chip" style="min-width:100px"><div class="clbl">AOV (EUR)</div><div class="cval" id="d-aov-eur">€0.00</div></div>
+      <div class="chip" style="min-width:105px"><div class="clbl">AOV (<span id="d-lc">HUF</span>)</div><div class="cval" id="d-aov-local">0</div></div>
+      <div class="chip" style="min-width:135px"><div class="clbl">Net/delivered (ex-ads)</div><div class="cval" id="d-net">$0.00</div></div>
     </div>
   </div>
 
-  <!-- COD Fee Structure -->
+  <!-- FEES -->
   <div class="card" style="margin-top:1rem">
-    <p class="card-title" id="fees-title">🇭🇺 Hungary — COD Cost Structure · all fees shown in USD</p>
-    <div class="grid-fees">
-      <div class="fee-chip">
-        <div class="fee-chip-label">Per Lead (CC)</div>
-        <div class="fee-chip-value pos">FREE</div>
-        <div class="fee-chip-sub">Call center leads</div>
-      </div>
-      <div class="fee-chip">
-        <div class="fee-chip-label">Per Confirmed (CC)</div>
-        <div class="fee-chip-value" id="f-conf">$1.17</div>
-        <div class="fee-chip-sub">€1.00 × rate</div>
-      </div>
-      <div class="fee-chip">
-        <div class="fee-chip-label">Logistics (delivered)</div>
-        <div class="fee-chip-value" id="f-log">$5.84</div>
-        <div class="fee-chip-sub" id="f-log-eur">€4.99 × rate</div>
-      </div>
-      <div class="fee-chip">
-        <div class="fee-chip-label">CC Delivery fee</div>
-        <div class="fee-chip-value" id="f-ccdel">$1.76</div>
-        <div class="fee-chip-sub">€1.50 × rate</div>
-      </div>
-      <div class="fee-chip">
-        <div class="fee-chip-label">Per Return</div>
-        <div class="fee-chip-value" id="f-ret">$7.01</div>
-        <div class="fee-chip-sub" id="f-ret-eur">€5.99 × rate</div>
-      </div>
-      <div class="fee-chip">
-        <div class="fee-chip-label">COD Fee</div>
-        <div class="fee-chip-value">5%</div>
-        <div class="fee-chip-sub">Of AOV collected</div>
-      </div>
+    <p class="ctitle" id="fees-title">🇭🇺 Hungary — COD Cost Structure · USD</p>
+    <div class="gf">
+      <div class="fc"><div class="fcl">Per Lead (CC)</div><div class="fcv pos">FREE</div><div class="fcs">Call center leads</div></div>
+      <div class="fc"><div class="fcl">Per Confirmed (CC)</div><div class="fcv" id="f-conf">$1.17</div><div class="fcs">€1.00 × rate</div></div>
+      <div class="fc"><div class="fcl">Logistics (delivered)</div><div class="fcv" id="f-log">$5.84</div><div class="fcs" id="f-log-eur">€4.99 × rate</div></div>
+      <div class="fc"><div class="fcl">CC Delivery fee</div><div class="fcv" id="f-ccdel">$1.76</div><div class="fcs">€1.50 × rate</div></div>
+      <div class="fc"><div class="fcl">Per Return</div><div class="fcv" id="f-ret">$7.01</div><div class="fcs" id="f-ret-eur">€5.99 × rate</div></div>
+      <div class="fc"><div class="fcl">COD Fee</div><div class="fcv">5%</div><div class="fcs">Of AOV collected</div></div>
     </div>
   </div>
 
-  <!-- Sections 1 & 2 -->
-  <div class="grid-2" style="margin-top:1rem">
-
-    <!-- Section 1 -->
+  <!-- BREAKEVEN + P&L -->
+  <div class="g2" style="margin-top:1rem">
     <div class="card">
-      <div class="section-heading">Section 1 — Breakeven thresholds</div>
-      <div class="section-sub">Minimum metrics to not lose money at your current AOV.</div>
-      <div class="be-card" id="ppl-card">
-        <div class="be-card-label">Current profit per lead (USD)</div>
-        <div class="be-card-value pos" id="ppl">+$0.00</div>
+      <div class="sh">Section 1 — Breakeven thresholds</div>
+      <div class="ss">At your current AOV &amp; cost structure.</div>
+      <div class="beg">
+        <div class="beb hl" id="ppl-card">
+          <div class="bebl">Profit per lead</div>
+          <div class="bebv pos" id="ppl">+$0.00</div>
+          <div class="bebs">per lead generated</div>
+        </div>
+        <div class="beb">
+          <div class="bebl">Max CPL (breakeven)</div>
+          <div class="bebv" id="be-cpl" style="color:var(--text)">$0.00</div>
+          <div class="bebs">spend limit per lead</div>
+        </div>
       </div>
-      <div class="pl-row"><span>Max cost per lead</span><span style="font-weight:600" id="be-cpl">$0.00</span></div>
-      <div class="pl-row"><span>Min confirmation rate</span><span style="font-weight:600" id="be-cr">—</span></div>
-      <div class="pl-row" style="border-bottom:none"><span>Min delivery rate</span><span style="font-weight:600" id="be-dr">—</span></div>
+      <div class="besr"><span style="color:var(--text2);font-size:12px">Min confirmation rate</span><span class="besv" id="be-cr">—</span></div>
+      <div class="besr"><span style="color:var(--text2);font-size:12px">Min delivery rate</span><span class="besv" id="be-dr">—</span></div>
     </div>
-
-    <!-- Section 2 -->
     <div class="card">
-      <div class="section-heading">Section 2 — Profit at scale</div>
-      <div class="section-sub">Full P&amp;L projection for <strong id="s2-lbl">1,000</strong> leads · all in USD.</div>
-      <div class="grid-3" style="margin-bottom:1rem">
-        <div class="chip" style="text-align:center">
-          <div class="chip-label">Leads</div>
-          <div class="chip-value sm" id="s2-leads">1,000</div>
-        </div>
-        <div class="chip" style="text-align:center">
-          <div class="chip-label">Confirmed</div>
-          <div class="chip-value sm" id="s2-conf">650</div>
-        </div>
-        <div class="chip" style="text-align:center">
-          <div class="chip-label">Delivered</div>
-          <div class="chip-value sm" id="s2-del">423</div>
-        </div>
+      <div class="sh">Section 2 — Profit at scale</div>
+      <div class="ss">Full P&amp;L for <strong id="s2-lbl">1,000</strong> leads · USD.</div>
+      <div class="g3" style="margin-bottom:.875rem">
+        <div class="chip" style="text-align:center"><div class="clbl">Leads</div><div class="cval sm" id="s2-leads">1,000</div></div>
+        <div class="chip" style="text-align:center"><div class="clbl">Confirmed</div><div class="cval sm" id="s2-conf">650</div></div>
+        <div class="chip" style="text-align:center"><div class="clbl">Delivered</div><div class="cval sm" id="s2-del">423</div></div>
       </div>
-      <div class="pl-row"><span>Gross revenue</span><span class="pos" id="s2-rev">$0</span></div>
-      <div class="pl-row"><span>COD fees (5%)</span><span class="neg" id="s2-cod">-$0</span></div>
-      <div class="pl-row"><span>Ad spend</span><span class="neg" id="s2-ads">-$0</span></div>
-      <div class="pl-row"><span>Confirmation fees (CC)</span><span class="neg" id="s2-cf">-$0</span></div>
-      <div class="pl-row"><span>Delivery (logistics + CC)</span><span class="neg" id="s2-df">-$0</span></div>
-      <div class="pl-row"><span>Return fees</span><span class="neg" id="s2-rf">-$0</span></div>
-      <div class="pl-row"><span>Product COGS</span><span class="neg" id="s2-cg">-$0</span></div>
-      <div class="pl-row total"><span>Net profit</span><span id="s2-net">$0</span></div>
+      <div class="plr"><span>Gross revenue</span><span class="pos" id="s2-rev">$0</span></div>
+      <div class="plr"><span>COD fees (5%)</span><span class="neg" id="s2-cod">-$0</span></div>
+      <div class="plr"><span>Ad spend</span><span class="neg" id="s2-ads">-$0</span></div>
+      <div class="plr"><span>Confirmation fees</span><span class="neg" id="s2-cf">-$0</span></div>
+      <div class="plr"><span>Delivery (logistics+CC)</span><span class="neg" id="s2-df">-$0</span></div>
+      <div class="plr"><span>Return fees</span><span class="neg" id="s2-rf">-$0</span></div>
+      <div class="plr"><span>Product COGS</span><span class="neg" id="s2-cg">-$0</span></div>
+      <div class="plr tot"><span>Net profit</span><span id="s2-net">$0</span></div>
     </div>
   </div>
 
-  <!-- Bottom metrics -->
-  <div class="grid-4" style="margin-top:1rem">
-    <div class="chip">
-      <div class="chip-label">Revenue / lead</div>
-      <div class="chip-value" id="m-rev">$0.00</div>
+  <!-- BOTTOM METRICS -->
+  <div class="g4" style="margin-top:1rem">
+    <div class="chip"><div class="clbl">Revenue / lead</div><div class="cval" id="m-rev">$0.00</div></div>
+    <div class="chip"><div class="clbl">Cost / lead</div><div class="cval" id="m-cost">$0.00</div></div>
+    <div class="chip"><div class="clbl">Profit margin</div><div class="cval" id="m-mg">0%</div></div>
+    <div class="chip"><div class="clbl">ROAS</div><div class="cval" id="m-roas">—</div></div>
+  </div>
+
+  <!-- BUDGET PROJECTOR -->
+  <div class="sdiv" style="margin-top:2rem"><span class="sdivc">📊 Budget Projector</span><span class="sdivl"></span></div>
+  <div class="card">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1rem">
+      <div>
+        <div class="sh">Budget → Leads &amp; Profit</div>
+        <div class="ss" style="margin-bottom:0">Enter your ad budget to see max leads &amp; projected profit. Set a target to see the required budget.</div>
+      </div>
+      <div class="ptoggle">
+        <button class="pbtn" onclick="setPeriod('day')">Day</button>
+        <button class="pbtn active" onclick="setPeriod('week')">Week</button>
+        <button class="pbtn" onclick="setPeriod('month')">Month</button>
+      </div>
     </div>
-    <div class="chip">
-      <div class="chip-label">Cost / lead</div>
-      <div class="chip-value" id="m-cost">$0.00</div>
+    <div class="ga" style="margin-bottom:.5rem">
+      <div class="field">
+        <div class="fl">Ad Budget <span class="tag" id="bp-tag">/ week</span> <span class="tip" data-tip="Total money you'll spend on ads in this period. Leads = Budget ÷ CPL.">?</span></div>
+        <input type="number" id="proj-budget" value="1000" step="10" min="0" oninput="calcProj()">
+      </div>
+      <div class="field">
+        <div class="fl">Fixed Costs <span class="tag" id="fc-tag">/ week</span> <span class="tip" data-tip="Optional: staff, tools, warehouse costs. Deducted from net profit.">?</span></div>
+        <input type="number" id="proj-fixed" value="0" step="10" min="0" oninput="calcProj()">
+      </div>
+      <div class="field">
+        <div class="fl">Profit Target <span class="tag" id="pt-tag">/ week</span> <span class="tip" data-tip="Optional: your profit goal. We'll calculate the budget needed to hit it.">?</span></div>
+        <input type="number" id="proj-target" value="0" step="10" min="0" oninput="calcProj()">
+      </div>
     </div>
-    <div class="chip">
-      <div class="chip-label">Profit margin</div>
-      <div class="chip-value" id="m-mg">0%</div>
+    <div class="pout">
+      <div class="pc"><div class="pcl" id="pl-leads-lbl">Leads / week</div><div class="pcv" id="pl-leads">—</div></div>
+      <div class="pc"><div class="pcl">Confirmed</div><div class="pcv" id="pl-conf">—</div></div>
+      <div class="pc"><div class="pcl">Delivered</div><div class="pcv" id="pl-del">—</div></div>
+      <div class="pc"><div class="pcl">Pieces shipped</div><div class="pcv" id="pl-pieces">—</div></div>
+      <div class="pc"><div class="pcl">Gross revenue</div><div class="pcv pos" id="pl-rev">$—</div></div>
+      <div class="pc"><div class="pcl">Total costs</div><div class="pcv neg" id="pl-costs">$—</div></div>
+      <div class="pc"><div class="pcl">Net profit</div><div class="pcv" id="pl-net">$—</div></div>
+      <div class="pc"><div class="pcl">ROI on ad spend</div><div class="pcv" id="pl-roi">—</div></div>
     </div>
-    <div class="chip">
-      <div class="chip-label">ROAS</div>
-      <div class="chip-value" id="m-roas">—</div>
+    <div class="target-box hidden" id="target-box">
+      <p style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:.5rem">🎯 To hit your profit target</p>
+      <div style="display:flex;gap:1.5rem;flex-wrap:wrap;font-size:13px">
+        <span style="color:var(--text2)">Required budget <span id="tgt-period">/week</span>: <strong style="color:var(--blue);font-size:16px" id="tgt-budget">$—</strong></span>
+        <span style="color:var(--text2)">Required leads: <strong style="color:var(--blue);font-size:16px" id="tgt-leads">—</strong></span>
+      </div>
     </div>
   </div>
 
 </main>
 
 <script>
-// ── COUNTRY DATA ──
-const COUNTRIES = {
-  hungary:  {flag:'🇭🇺',name:'Hungary',       curr:'HUF',fallback:0.002797,delivered:4.99,returned:5.99},
-  romania:  {flag:'🇷🇴',name:'Romania',       curr:'RON',fallback:0.20302, delivered:5.26,returned:6.26},
-  bulgaria: {flag:'🇧🇬',name:'Bulgaria',      curr:'BGN',fallback:0.51129, delivered:5.99,returned:6.99},
-  poland:   {flag:'🇵🇱',name:'Poland',        curr:'PLN',fallback:0.23578, delivered:5.99,returned:7.99},
-  czech:    {flag:'🇨🇿',name:'Czech Republic',curr:'CZK',fallback:0.04113, delivered:7.26,returned:9.26},
-  greece:   {flag:'🇬🇷',name:'Greece',        curr:'EUR',fallback:1,       delivered:6.24,returned:8.24},
-  slovakia: {flag:'🇸🇰',name:'Slovakia',      curr:'EUR',fallback:1,       delivered:5.99,returned:7.99},
-  slovenia: {flag:'🇸🇮',name:'Slovenia',      curr:'EUR',fallback:1,       delivered:4.99,returned:5.99},
-  croatia:  {flag:'🇭🇷',name:'Croatia',       curr:'EUR',fallback:1,       delivered:5.99,returned:7.99},
-  austria:  {flag:'🇦🇹',name:'Austria',       curr:'EUR',fallback:1,       delivered:6.99,returned:6.99}
+const COUNTRIES={
+  hungary: {flag:'🇭🇺',name:'Hungary',       curr:'HUF',fallback:0.002797,delivered:4.99,returned:5.99},
+  romania: {flag:'🇷🇴',name:'Romania',       curr:'RON',fallback:0.20302, delivered:5.26,returned:6.26},
+  bulgaria:{flag:'🇧🇬',name:'Bulgaria',      curr:'BGN',fallback:0.51129, delivered:5.99,returned:6.99},
+  poland:  {flag:'🇵🇱',name:'Poland',        curr:'PLN',fallback:0.23578, delivered:5.99,returned:7.99},
+  czech:   {flag:'🇨🇿',name:'Czech Republic',curr:'CZK',fallback:0.04113, delivered:7.26,returned:9.26},
+  greece:  {flag:'🇬🇷',name:'Greece',        curr:'EUR',fallback:1,       delivered:6.24,returned:8.24},
+  slovakia:{flag:'🇸🇰',name:'Slovakia',      curr:'EUR',fallback:1,       delivered:5.99,returned:7.99},
+  slovenia:{flag:'🇸🇮',name:'Slovenia',      curr:'EUR',fallback:1,       delivered:4.99,returned:5.99},
+  croatia: {flag:'🇭🇷',name:'Croatia',       curr:'EUR',fallback:1,       delivered:5.99,returned:7.99},
+  austria: {flag:'🇦🇹',name:'Austria',       curr:'EUR',fallback:1,       delivered:6.99,returned:6.99}
 };
-const CC_CONF=1.00, CC_DEL=1.50, COD_RATE=0.05;
-const FALLBACK_EUR_USD=1.1713;
-
+const CC_CONF=1,CC_DEL=1.5,COD=0.05,FEUR=1.1713;
 const $=id=>document.getElementById(id);
 const usd=(n,d=2)=>(n<0?'-':'')+'$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
 const eur=n=>'€'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-const fnum=n=>Math.round(n).toLocaleString('en-US');
+const fn=n=>Math.round(n).toLocaleString('en-US');
 const pct=n=>n.toFixed(1)+'%';
-
-// ── LINKED INPUT STATE ──
-let ignoreAOV=false, ignoreAOQ=false;
-
+let iA=false,iQ=false;
 function getC(){return COUNTRIES[$('country').value]}
 
-function onAOVChange(){
-  if(ignoreAOV) return;
-  const aov=parseFloat($('aov').value)||0;
-  const up=parseFloat($('unitPrice').value)||1;
-  ignoreAOQ=true;
-  $('aoq').value=(aov/up).toFixed(2);
-  ignoreAOQ=false;
-  calc();
-}
-function onAOQChange(){
-  if(ignoreAOQ) return;
-  const aoq=parseFloat($('aoq').value)||1;
-  const up=parseFloat($('unitPrice').value)||1;
-  ignoreAOV=true;
-  $('aov').value=(aoq*up).toFixed(0);
-  ignoreAOV=false;
-  calc();
-}
-function onUnitPriceChange(){
-  // AOQ stays master, AOV updates
-  const aoq=parseFloat($('aoq').value)||1;
-  const up=parseFloat($('unitPrice').value)||1;
-  ignoreAOV=true;
-  $('aov').value=(aoq*up).toFixed(0);
-  ignoreAOV=false;
-  calc();
-}
+function onAOVChange(){if(iA)return;const up=parseFloat($('unitPrice').value)||1;iQ=true;$('aoq').value=((parseFloat($('aov').value)||0)/up).toFixed(2);iQ=false;calc();}
+function onAOQChange(){if(iQ)return;const up=parseFloat($('unitPrice').value)||1;iA=true;$('aov').value=((parseFloat($('aoq').value)||1)*up).toFixed(0);iA=false;calc();}
+function onUnitPriceChange(){const up=parseFloat($('unitPrice').value)||1,aoq=parseFloat($('aoq').value)||1;iA=true;$('aov').value=(aoq*up).toFixed(0);iA=false;calc();}
 
-// ── UPDATE COUNTRY UI ──
-function updateCountryUI(){
+let rOpen=false;
+function toggleRates(){rOpen=!rOpen;$('rexp').classList.toggle('open',rOpen);$('rtlbl').textContent=rOpen?'▴ close':'▾ edit rates';}
+function onRateChange(){updateRatesBar();calc();calcProj();}
+function updateRatesBar(){
+  $('rb-eurusd').textContent=parseFloat($('eurUsd').value).toFixed(4);
   const c=getC();
-  const isEUR=c.curr==='EUR';
-  const lf=$('localRateField');
-  lf.style.opacity=isEUR?'0.4':'1';
-  lf.style.pointerEvents=isEUR?'none':'auto';
-  $('local-rate-label').textContent=isEUR?'Local → EUR':c.curr+' → EUR';
-  $('local-rate-hint').textContent=isEUR?'This country uses EUR':'1 '+c.curr+' = ? EUR';
-  if(!isEUR) $('localToEur').value=c.fallback;
-  else $('localToEur').value=1;
-  $('aov-curr-tag').textContent=c.curr;
-  $('up-curr-tag').textContent=c.curr;
-  $('d-local-curr').textContent=c.curr;
-  $('fees-title').textContent=c.flag+' '+c.name+' — COD Cost Structure · all fees shown in USD';
+  if(c.curr!=='EUR'){$('rb-local-wrap').style.display='flex';$('rb-local').textContent=parseFloat($('localToEur').value).toFixed(6);}
+  else $('rb-local-wrap').style.display='none';
+}
+function updateCountryUI(){
+  const c=getC(),isEUR=c.curr==='EUR';
+  $('localRateField').style.opacity=isEUR?'0.4':'1';
+  $('localRateField').style.pointerEvents=isEUR?'none':'auto';
+  $('lrlabel').textContent=isEUR?'Local → EUR':c.curr+' → EUR';
+  if(!isEUR)$('localToEur').value=c.fallback;else $('localToEur').value=1;
+  $('aov-curr-tag').textContent=c.curr;$('up-curr-tag').textContent=c.curr;$('d-lc').textContent=c.curr;
+  $('fees-title').textContent=c.flag+' '+c.name+' — COD Cost Structure · USD';
   $('f-log-eur').textContent='€'+c.delivered.toFixed(2)+' × rate';
   $('f-ret-eur').textContent='€'+c.returned.toFixed(2)+' × rate';
+  updateRatesBar();
 }
 
-// ── MAIN CALC ──
-function calc(){
+function getVars(){
   const c=getC();
-  const eurUsd=parseFloat($('eurUsd').value)||FALLBACK_EUR_USD;
-  const l2e=parseFloat($('localToEur').value)||c.fallback;
-  const aovLocal=parseFloat($('aov').value)||0;
-  const aoq=parseFloat($('aoq').value)||1;
-  const prodCostEur=parseFloat($('productCost').value)||0;
-  const cpl=parseFloat($('cpl').value)||0;
-  const cr=(parseFloat($('crInput').value)||0)/100;
-  const dr=(parseFloat($('drInput').value)||0)/100;
+  const eu=parseFloat($('eurUsd').value)||FEUR,l2e=parseFloat($('localToEur').value)||c.fallback;
+  const aovL=parseFloat($('aov').value)||0,aoq=parseFloat($('aoq').value)||1;
+  const pc=parseFloat($('productCost').value)||0,cpl=parseFloat($('cpl').value)||0;
+  const cr=(parseFloat($('crInput').value)||0)/100,dr=(parseFloat($('drInput').value)||0)/100;
   const N=parseInt($('leadsScale').value)||1000;
-
-  const aovEUR=aovLocal*l2e;
-  const aovUSD=aovEUR*eurUsd;
-  const cogsUSD=aoq*prodCostEur*eurUsd;
-  const confFeeUSD=CC_CONF*eurUsd;
-  const delLogUSD=c.delivered*eurUsd;
-  const ccDelUSD=CC_DEL*eurUsd;
-  const retUSD=c.returned*eurUsd;
-  const totalDelUSD=delLogUSD+ccDelUSD;
-
-  $('d-aov-usd').textContent=usd(aovUSD);
-  $('d-aov-eur').textContent=eur(aovEUR);
-  $('d-aov-local').textContent=Math.round(aovLocal).toLocaleString('en-US');
-  $('f-conf').textContent=usd(confFeeUSD);
-  $('f-log').textContent=usd(delLogUSD);
-  $('f-ccdel').textContent=usd(ccDelUSD);
-  $('f-ret').textContent=usd(retUSD);
-
-  const netPerDel=aovUSD*(1-COD_RATE)-totalDelUSD-(dr>0?confFeeUSD/dr:confFeeUSD)-cogsUSD;
-  $('d-net').textContent=(netPerDel>=0?'+':'')+usd(netPerDel);
-  $('d-net').className='chip-value'+(netPerDel>=0?' pos':' neg');
-
-  const revPL=cr*dr*aovUSD*(1-COD_RATE);
-  const codPL=cr*dr*aovUSD*COD_RATE;
-  const confCPL=cr*confFeeUSD;
-  const delCPL=cr*dr*totalDelUSD;
-  const retCPL=cr*(1-dr)*retUSD;
-  const cogsCPL=cr*dr*cogsUSD;
-  const costPL=cpl+confCPL+delCPL+retCPL+cogsCPL;
-  const profPL=revPL-costPL;
-
-  const pplEl=$('ppl');
-  pplEl.textContent=(profPL>=0?'+':'')+usd(profPL);
-  pplEl.className='be-card-value'+(profPL>=0?' pos':' neg');
-  $('ppl-card').className='be-card'+(profPL>=0?'':' loss');
-
-  $('be-cpl').textContent=usd(Math.max(0,profPL+cpl));
-
-  const denDR=cr*(aovUSD*(1-COD_RATE)-totalDelUSD-cogsUSD-retUSD);
-  const numDR=cpl+cr*(confFeeUSD+retUSD);
-  const minDR=denDR>0?numDR/denDR:null;
-  $('be-dr').textContent=(minDR!==null&&minDR>=0&&minDR<=1)?pct(minDR*100):'—';
-
-  const denCR=dr*(aovUSD*(1-COD_RATE)-totalDelUSD-cogsUSD)-(1-dr)*retUSD-confFeeUSD;
-  const minCR=denCR>0?cpl/denCR:null;
-  $('be-cr').textContent=(minCR!==null&&minCR>=0&&minCR<=1)?pct(minCR*100):'—';
-
-  const confirmed=Math.round(N*cr);
-  const delivered=Math.round(N*cr*dr);
-  $('s2-lbl').textContent=fnum(N);
-  $('s2-leads').textContent=fnum(N);
-  $('s2-conf').textContent=fnum(confirmed);
-  $('s2-del').textContent=fnum(delivered);
-
-  const grev=N*cr*dr*aovUSD;
-  const tcod=N*codPL;
-  const tads=N*cpl;
-  const tcf=N*confCPL;
-  const tdf=N*delCPL;
-  const trf=N*retCPL;
-  const tcg=N*cogsCPL;
-  const net=N*profPL;
-
-  $('s2-rev').textContent=usd(grev,0);
-  $('s2-cod').textContent='-'+usd(tcod,0);
-  $('s2-ads').textContent='-'+usd(tads,0);
-  $('s2-cf').textContent='-'+usd(tcf,0);
-  $('s2-df').textContent='-'+usd(tdf,0);
-  $('s2-rf').textContent='-'+usd(trf,0);
-  $('s2-cg').textContent='-'+usd(tcg,0);
-  const netEl=$('s2-net');
-  netEl.textContent=(net>=0?'+':'')+usd(net,0);
-  netEl.className=net>=0?'pos':'neg';
-
-  const rl=N>0?grev/N:0;
-  const cl2=N>0?(grev-net)/N:0;
-  const mg=grev>0?(net/grev)*100:0;
-  const roas=tads>0?grev/tads:null;
-  $('m-rev').textContent=usd(rl);
-  $('m-cost').textContent=usd(cl2);
-  $('m-mg').textContent=pct(mg);
-  $('m-mg').className='chip-value'+(mg>=0?' pos':' neg');
-  $('m-roas').textContent=roas!==null?roas.toFixed(2)+'x':'—';
+  const aovE=aovL*l2e,aovU=aovE*eu,cogsU=aoq*pc*eu;
+  const cfU=CC_CONF*eu,dlU=c.delivered*eu,cdU=CC_DEL*eu,retU=c.returned*eu,tdU=dlU+cdU;
+  return{c,eu,l2e,aovL,aoq,pc,cpl,cr,dr,N,aovE,aovU,cogsU,cfU,dlU,cdU,retU,tdU};
+}
+function ppl(v){
+  const{aovU,cr,dr,cpl,cfU,tdU,retU,cogsU}=v;
+  return cr*dr*aovU*(1-COD)-(cpl+cr*cfU+cr*dr*tdU+cr*(1-dr)*retU+cr*dr*cogsU);
+}
+function calc(){
+  const v=getVars();
+  const{c,aovL,aoq,aovE,aovU,cogsU,cfU,dlU,cdU,retU,tdU,cr,dr,cpl,N}=v;
+  $('d-aov-usd').textContent=usd(aovU);$('d-aov-eur').textContent=eur(aovE);
+  $('d-aov-local').textContent=Math.round(aovL).toLocaleString('en-US');
+  $('f-conf').textContent=usd(cfU);$('f-log').textContent=usd(dlU);$('f-ccdel').textContent=usd(cdU);$('f-ret').textContent=usd(retU);
+  const nd=aovU*(1-COD)-tdU-(dr>0?cfU/dr:cfU)-cogsU;
+  $('d-net').textContent=(nd>=0?'+':'')+usd(nd);$('d-net').className='cval'+(nd>=0?' pos':' neg');
+  const prof=ppl(v);
+  $('ppl').textContent=(prof>=0?'+':'')+usd(prof);$('ppl').className='bebv'+(prof>=0?' pos':' neg');
+  $('ppl-card').className='beb hl'+(prof>=0?'':' loss');
+  $('be-cpl').textContent=usd(Math.max(0,prof+cpl));
+  const ddR=cr*(aovU*(1-COD)-tdU-cogsU-retU);
+  const mDR=ddR>0?(cpl+cr*(cfU+retU))/ddR:null;
+  $('be-dr').textContent=mDR!==null&&mDR>=0&&mDR<=1?pct(mDR*100):'—';
+  const ddC=dr*(aovU*(1-COD)-tdU-cogsU)-(1-dr)*retU-cfU;
+  const mCR=ddC>0?cpl/ddC:null;
+  $('be-cr').textContent=mCR!==null&&mCR>=0&&mCR<=1?pct(mCR*100):'—';
+  $('s2-lbl').textContent=fn(N);$('s2-leads').textContent=fn(N);$('s2-conf').textContent=fn(Math.round(N*cr));$('s2-del').textContent=fn(Math.round(N*cr*dr));
+  const grev=N*cr*dr*aovU,tcod=N*cr*dr*aovU*COD,tads=N*cpl;
+  const tcf=N*cr*cfU,tdf=N*cr*dr*tdU,trf=N*cr*(1-dr)*retU,tcg=N*cr*dr*cogsU,net=N*prof;
+  $('s2-rev').textContent=usd(grev,0);$('s2-cod').textContent='-'+usd(tcod,0);$('s2-ads').textContent='-'+usd(tads,0);
+  $('s2-cf').textContent='-'+usd(tcf,0);$('s2-df').textContent='-'+usd(tdf,0);$('s2-rf').textContent='-'+usd(trf,0);$('s2-cg').textContent='-'+usd(tcg,0);
+  const ne=$('s2-net');ne.textContent=(net>=0?'+':'')+usd(net,0);ne.className=net>=0?'pos':'neg';
+  const rl=N?grev/N:0,cl=N?(grev-net)/N:0,mg=grev?(net/grev)*100:0,roas=tads?grev/tads:null;
+  $('m-rev').textContent=usd(rl);$('m-cost').textContent=usd(cl);
+  $('m-mg').textContent=pct(mg);$('m-mg').className='cval'+(mg>=0?' pos':' neg');
+  $('m-roas').textContent=roas?roas.toFixed(2)+'x':'—';
+  calcProj();
 }
 
-// ── LIVE RATES ──
+let period='week';
+const PL={day:'/ day',week:'/ week',month:'/ month'};
+function setPeriod(p){
+  period=p;
+  document.querySelectorAll('.pbtn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===p));
+  const l=PL[p];$('bp-tag').textContent=l;$('fc-tag').textContent=l;$('pt-tag').textContent=l;
+  $('pl-leads-lbl').textContent='Leads '+l;$('tgt-period').textContent=l;
+  calcProj();
+}
+function calcProj(){
+  const v=getVars();const{cpl,cr,dr,aoq,aovU,cogsU,cfU,tdU,retU}=v;
+  const budget=parseFloat($('proj-budget').value)||0;
+  const fixed=parseFloat($('proj-fixed').value)||0;
+  const target=parseFloat($('proj-target').value)||0;
+  if(cpl<=0){['pl-leads','pl-conf','pl-del','pl-pieces','pl-rev','pl-costs','pl-net','pl-roi'].forEach(id=>$(id).textContent='—');$('target-box').classList.add('hidden');return;}
+  const leads=budget/cpl,conf=leads*cr,del=leads*cr*dr,pieces=del*aoq;
+  const grev=del*aovU,tcod=del*aovU*COD,tcf=conf*cfU,tdf=del*tdU,trf=(conf-del)*retU,tcg=del*cogsU;
+  const totalCosts=budget+tcod+tcf+tdf+trf+tcg+fixed;
+  const net=grev*(1-COD)-budget-tcf-tdf-trf-tcg-fixed;
+  const roi=budget?((net+fixed)/budget)*100:0;
+  $('pl-leads').textContent=fn(leads);$('pl-conf').textContent=fn(conf);$('pl-del').textContent=fn(del);$('pl-pieces').textContent=fn(pieces);
+  $('pl-rev').textContent=usd(grev,0);$('pl-costs').textContent='-'+usd(totalCosts,0);
+  const ne=$('pl-net');ne.textContent=(net>=0?'+':'')+usd(net,0);ne.className='pcv'+(net>=0?' pos':' neg');
+  $('pl-roi').textContent=roi.toFixed(1)+'%';$('pl-roi').className='pcv'+(roi>=0?' pos':' neg');
+  if(target>0){
+    $('target-box').classList.remove('hidden');
+    const pp=ppl(v);
+    if(pp>0){const rLeads=(target+fixed)/pp;$('tgt-budget').textContent=usd(rLeads*cpl,0);$('tgt-leads').textContent=fn(rLeads);}
+    else{$('tgt-budget').textContent='∞ not profitable';$('tgt-leads').textContent='—';}
+  }else $('target-box').classList.add('hidden');
+}
+
 async function fetchRates(){
   try{
     const r=await fetch('https://api.frankfurter.app/latest?from=EUR&to=USD,HUF,RON,PLN,CZK',{signal:AbortSignal.timeout(6000)});
-    const d=await r.json();
-    if(!d.rates) throw new Error('no rates');
+    const d=await r.json();if(!d.rates)throw 0;
     const rt=d.rates;
-    $('eurUsd').value=(rt.USD||FALLBACK_EUR_USD).toFixed(4);
-    $('eur-usd-hint').textContent='1 EUR = '+(rt.USD).toFixed(4)+' USD · live';
-    const map={HUF:'hungary',RON:'romania',PLN:'poland',CZK:'czech'};
-    Object.entries(map).forEach(([curr,key])=>{
-      if(rt[curr]) COUNTRIES[key].fallback=+(1/rt[curr]).toFixed(6);
-    });
-    const c=getC();
-    if(c.curr!=='EUR'){
-      $('localToEur').value=c.fallback;
-      $('local-rate-hint').textContent='1 '+c.curr+' = '+c.fallback+' EUR · live';
-    }
-    const badge=$('rate-badge');
-    badge.className='rate-badge live';
-    $('rate-badge-text').textContent='Live rates · '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-    calc();
-  } catch(e){
-    $('eurUsd').value=FALLBACK_EUR_USD;
-    $('eur-usd-hint').textContent='1 EUR = '+FALLBACK_EUR_USD+' USD · May 14 2026';
-    const badge=$('rate-badge');
-    badge.className='rate-badge fallback';
-    $('rate-badge-text').textContent='Rates: May 14 2026';
-    calc();
+    $('eurUsd').value=(rt.USD||FEUR).toFixed(4);
+    ({HUF:'hungary',RON:'romania',PLN:'poland',CZK:'czech'});
+    Object.entries({HUF:'hungary',RON:'romania',PLN:'poland',CZK:'czech'}).forEach(([k,v])=>{if(rt[k])COUNTRIES[v].fallback=+(1/rt[k]).toFixed(6);});
+    const c=getC();if(c.curr!=='EUR')$('localToEur').value=c.fallback;
+    $('rbadge').className='rbadge live';$('rbtext').textContent='Live · '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    updateRatesBar();calc();
+  }catch{
+    $('eurUsd').value=FEUR;$('rbadge').className='rbadge fallback';$('rbtext').textContent='Rates: May 14 2026';
+    updateRatesBar();calc();
   }
 }
 
-// ── COUNTRY CHANGE ──
-$('country').addEventListener('change',()=>{updateCountryUI();calc()});
-
-// ── FILE UPLOAD ──
-let parsedRows=[], parsedHeaders=[];
-
-const zone=$('upload-zone');
-zone.addEventListener('click',()=>$('file-input').click());
-zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag')});
-zone.addEventListener('dragleave',()=>zone.classList.remove('drag'));
-zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('drag');handleFile(e.dataTransfer.files[0])});
-$('file-input').addEventListener('change',e=>handleFile(e.target.files[0]));
-
-function showAlert(container,msg,type='info'){
-  $(container).innerHTML=`<div class="alert ${type}">${msg}</div>`;
-}
+/* UPLOAD */
+let rows=[],hdrs=[],activeSKU='';
+const TKW=['total','amount','price','revenue','value','sum','subtotal','grand','montant'],QKW=['quantity','qty','units','items','pieces','qte'],SKW=['sku','product','item','name','article','ref','libelle','produit'];
+const uz=$('uzone');
+uz.addEventListener('click',()=>$('file-input').click());
+uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('drag')});
+uz.addEventListener('dragleave',()=>uz.classList.remove('drag'));
+uz.addEventListener('drop',e=>{e.preventDefault();uz.classList.remove('drag');handleFile(e.dataTransfer.files[0])});
+$('file-input').addEventListener('change',e=>{handleFile(e.target.files[0]);e.target.value='';});
+function al(el,msg,t='info'){$(el).innerHTML=`<div class="alert ${t}">${msg}</div>`;}
+function guess(h,kws){for(const kw of kws){const m=h.find(x=>x.toLowerCase().includes(kw));if(m)return m;}return'';}
 
 function handleFile(file){
-  if(!file){return}
-  const ext=file.name.split('.').pop().toLowerCase();
-  if(ext==='csv'){
-    Papa.parse(file,{header:true,skipEmptyLines:true,complete:r=>{
-      if(!r.data.length){showAlert('upload-status','No data found in file.','error');return}
-      parsedRows=r.data;
-      parsedHeaders=r.meta.fields||[];
-      populateMappers();
-    },error:e=>showAlert('upload-status','Error parsing CSV: '+e.message,'error')});
-  } else if(['xlsx','xls'].includes(ext)){
-    const reader=new FileReader();
-    reader.onload=e=>{
-      try{
-        const wb=XLSX.read(e.target.result,{type:'binary'});
-        const ws=wb.Sheets[wb.SheetNames[0]];
-        const data=XLSX.utils.sheet_to_json(ws,{defval:''});
-        if(!data.length){showAlert('upload-status','No data found in file.','error');return}
-        parsedRows=data;
-        parsedHeaders=Object.keys(data[0]);
-        populateMappers();
-      }catch(err){showAlert('upload-status','Error reading Excel: '+err.message,'error')}
-    };
-    reader.readAsBinaryString(file);
-  } else {
-    showAlert('upload-status','Please upload a .csv, .xlsx or .xls file.','error');
-  }
+  if(!file)return;const ext=file.name.split('.').pop().toLowerCase();
+  if(ext==='csv')Papa.parse(file,{header:true,skipEmptyLines:true,complete:r=>{if(!r.data.length){al('upload-status','No data found.','error');return;}rows=r.data;hdrs=r.meta.fields||[];setup(file.name);},error:e=>al('upload-status','CSV error: '+e.message,'error')});
+  else if(['xlsx','xls'].includes(ext)){const rd=new FileReader();rd.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:'binary'});const ws=wb.Sheets[wb.SheetNames[0]];const data=XLSX.utils.sheet_to_json(ws,{defval:''});if(!data.length){al('upload-status','No data.','error');return;}rows=data;hdrs=Object.keys(data[0]);setup(file.name);}catch(err){al('upload-status','Excel error: '+err.message,'error');}};rd.readAsBinaryString(file);}
+  else al('upload-status','Upload .csv, .xlsx or .xls','error');
 }
-
-const TOTAL_KEYWORDS=['total','amount','price','revenue','value','sum','order_total','subtotal','grand','vente','montant'];
-const QTY_KEYWORDS=['quantity','qty','units','count','items','pieces','qt','qte'];
-const ID_KEYWORDS=['id','order_id','order','ref','reference','#'];
-
-function guessCol(headers, keywords){
-  for(const kw of keywords){
-    const match=headers.find(h=>h.toLowerCase().includes(kw));
-    if(match) return match;
-  }
-  return '';
+function setup(fname){
+  al('upload-status','✅ <strong>'+fname+'</strong> — '+rows.length.toLocaleString()+' rows. Map columns below.','info');
+  const opts=hdrs.map(h=>`<option value="${h}">${h}</option>`).join(''),none='<option value="">— skip —</option>';
+  $('col-total').innerHTML=none+opts;$('col-qty').innerHTML=none+opts;$('col-sku').innerHTML=none+opts;
+  $('col-total').value=guess(hdrs,TKW);$('col-qty').value=guess(hdrs,QKW);$('col-sku').value=guess(hdrs,SKW);
+  $('mapper').classList.remove('hidden');
+  $('col-sku').onchange=onSKUColChange;onSKUColChange();
+  renderPreview(rows.slice(0,5));
 }
-
-function populateMappers(){
-  $('upload-status').innerHTML='<div class="alert info">✅ File loaded — '+parsedRows.length+' rows detected. Map your columns below.</div>';
-  const opts=parsedHeaders.map(h=>`<option value="${h}">${h}</option>`).join('');
-  const noOpt='<option value="">— skip —</option>';
-  $('col-total').innerHTML=noOpt+opts;
-  $('col-qty').innerHTML=noOpt+opts;
-  $('col-id').innerHTML=noOpt+opts;
-  $('col-total').value=guessCol(parsedHeaders,TOTAL_KEYWORDS);
-  $('col-qty').value=guessCol(parsedHeaders,QTY_KEYWORDS);
-  $('col-id').value=guessCol(parsedHeaders,ID_KEYWORDS);
-  $('col-mapper-section').classList.remove('hidden');
-  renderPreview();
+function onSKUColChange(){
+  const sc=$('col-sku').value;const sfr=$('sku-filter-row');
+  if(!sc){sfr.classList.add('hidden');return;}
+  const vals=[...new Set(rows.map(r=>String(r[sc]||'').trim()).filter(Boolean))].sort();
+  $('sku-select').innerHTML='<option value="">All ('+rows.length+')</option>'+vals.map(v=>`<option value="${v}">${v}</option>`).join('');
+  sfr.classList.remove('hidden');
+  $('sku-select').onchange=()=>{activeSKU=$('sku-select').value;refreshPreview();};
 }
-
-function renderPreview(){
-  const sample=parsedRows.slice(0,5);
-  const hdrs=parsedHeaders.slice(0,8);
-  let html='<tr>'+hdrs.map(h=>`<th>${h}</th>`).join('')+'</tr>';
-  sample.forEach(row=>{html+='<tr>'+hdrs.map(h=>`<td>${row[h]??''}</td>`).join('')+'</tr>'});
-  $('preview-table').innerHTML=html;
-  $('preview-section').classList.remove('hidden');
+function getRows(){if(!activeSKU)return rows;const sc=$('col-sku').value;return rows.filter(r=>String(r[sc]||'').trim()===activeSKU);}
+function refreshPreview(){renderPreview(getRows().slice(0,5));$('preview-info').textContent=activeSKU?activeSKU+' ('+getRows().length+' orders)':'All ('+rows.length+')';}
+function renderPreview(sample){
+  const h=hdrs.slice(0,9);
+  let t='<tr>'+h.map(x=>`<th>${x}</th>`).join('')+'</tr>';
+  sample.forEach(r=>{t+='<tr>'+h.map(x=>`<td>${r[x]??''}</td>`).join('')+'</tr>';});
+  $('preview-table').innerHTML=t;$('preview-section').classList.remove('hidden');
 }
-
-function parseNum(v){
-  if(v===null||v===undefined||v==='') return NaN;
-  return parseFloat(String(v).replace(/[^\d.,-]/g,'').replace(',','.'));
-}
-
+function pn(v){if(v===null||v===undefined||v==='')return NaN;return parseFloat(String(v).replace(/[^\d.,-]/g,'').replace(/,([0-9]{1,2})$/,'.$1').replace(/,/g,''));}
 function calcFromUpload(){
-  const colTotal=$('col-total').value;
-  const colQty=$('col-qty').value;
-  if(!colTotal){showAlert('upload-status','Please select the order total column.','warn');return}
-
-  let totalSum=0, qtySum=0, orderCount=0;
-  parsedRows.forEach(row=>{
-    const t=parseNum(row[colTotal]);
-    if(isNaN(t)||t<=0) return;
-    const q=colQty?parseNum(row[colQty]):NaN;
-    totalSum+=t;
-    qtySum+=(!isNaN(q)&&q>0)?q:1;
-    orderCount++;
-  });
-
-  if(!orderCount){showAlert('upload-status','Could not parse any valid order totals from the selected column. Check that the values are numbers.','error');return}
-
-  const calcAOV=totalSum/orderCount;
-  const calcAOQ=qtySum/orderCount;
-  const c=getC();
-
-  $('res-orders').textContent=orderCount.toLocaleString('en-US');
-  $('res-aov').textContent=calcAOV.toFixed(0);
-  $('res-curr').textContent=c.curr;
-  $('res-aoq').textContent=calcAOQ.toFixed(2);
+  const ct=$('col-total').value;if(!ct){al('upload-status','Select the order total column.','warn');return;}
+  const fr=getRows();if(!fr.length){al('upload-status','No rows for selected SKU.','warn');return;}
+  let ts=0,qs=0,cnt=0;
+  fr.forEach(r=>{const t=pn(r[ct]);if(isNaN(t)||t<=0)return;const q=$('col-qty').value?pn(r[$('col-qty').value]):NaN;ts+=t;qs+=(!isNaN(q)&&q>0)?q:1;cnt++;});
+  if(!cnt){al('upload-status','No valid totals found.','error');return;}
+  const aov=ts/cnt,aoq2=qs/cnt,c=getC();
+  $('res-orders').textContent=cnt.toLocaleString();$('res-aov').textContent=aov.toFixed(0);$('res-curr').textContent=c.curr;
+  $('res-aoq').textContent=aoq2.toFixed(2);$('res-total').textContent=Math.round(ts).toLocaleString();$('res-total-curr').textContent=c.curr;
   $('upload-results').classList.remove('hidden');
-  showAlert('upload-status','✅ Calculated from '+orderCount+' orders.','info');
-
-  window._calcAOV=calcAOV;
-  window._calcAOQ=calcAOQ;
+  if(activeSKU){$('sku-banner').style.display='block';$('sku-pill-name').textContent=activeSKU;$('sku-order-count').textContent='— '+cnt.toLocaleString()+' orders';}
+  al('upload-status','✅ From '+cnt.toLocaleString()+' orders'+(activeSKU?' · SKU: '+activeSKU:''),'info');
+  window._aov=aov;window._aoq=aoq2;refreshPreview();
 }
-
 function applyToCalc(){
-  if(!window._calcAOV) return;
-  const c=getC();
-  ignoreAOQ=true;
-  $('aov').value=Math.round(window._calcAOV);
-  $('unitPrice').value=Math.round(window._calcAOV/window._calcAOQ);
-  ignoreAOQ=false;
-  ignoreAOV=true;
-  $('aoq').value=window._calcAOQ.toFixed(2);
-  ignoreAOV=false;
-  calc();
-  document.querySelector('.section-divider:last-of-type')?.scrollIntoView({behavior:'smooth',block:'start'});
-  showAlert('upload-status','↓ Applied to calculator! Scroll down to see results.','info');
+  if(!window._aov)return;
+  const up=Math.round(window._aov/window._aoq);
+  iA=true;$('aov').value=Math.round(window._aov);iA=false;
+  $('unitPrice').value=up;iA=true;$('aoq').value=window._aoq.toFixed(2);iA=false;
+  calc();document.querySelectorAll('.sdiv')[1].scrollIntoView({behavior:'smooth',block:'start'});
+  al('upload-status','↓ Applied! Scroll down to see results.','info');
 }
+function resetSKU(){$('sku-select').value='';activeSKU='';refreshPreview();}
+function clearSKU(){activeSKU='';if($('sku-select'))$('sku-select').value='';$('sku-banner').style.display='none';if(rows.length)refreshPreview();}
 
-// ── INIT ──
-updateCountryUI();
-fetchRates();
+$('country').addEventListener('change',()=>{updateCountryUI();calc();});
+updateCountryUI();fetchRates();setPeriod('week');
 </script>
 </body>
 </html>
