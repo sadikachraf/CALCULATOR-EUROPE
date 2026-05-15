@@ -155,6 +155,22 @@ input:focus,select:focus{border-color:var(--green)}
 .pcv{font-size:17px;font-weight:700;color:var(--text)}
 .target-box{margin-top:.875rem;padding:.875rem 1rem;background:var(--blue-l);border-radius:var(--r);border:1px solid var(--blue)}
 
+/* PROFIT BREAKDOWN TOOLTIP */
+.profit-hover-wrap{position:relative}
+.profit-breakdown{
+  display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
+  background:var(--text);color:var(--surface);border-radius:var(--r);padding:.75rem 1rem;
+  min-width:180px;z-index:500;box-shadow:0 8px 24px rgba(0,0,0,0.18);
+  pointer-events:none;
+}
+.profit-breakdown::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);
+  border:6px solid transparent;border-top-color:var(--text);}
+.profit-hover-wrap:hover .profit-breakdown{display:block}
+.pb-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.1);font-size:12px}
+.pb-row:last-child{border-bottom:none}
+.pb-lbl{color:rgba(255,255,255,0.65)}
+.pb-val{font-weight:700;font-size:13px}
+
 .hidden{display:none!important}
 .pos{color:var(--green)!important}.neg{color:var(--red)!important}
 
@@ -453,7 +469,16 @@ input:focus,select:focus{border-color:var(--green)}
       <div class="pc"><div class="pcl">Pieces shipped</div><div class="pcv" id="pl-pieces">—</div></div>
       <div class="pc"><div class="pcl">Gross revenue</div><div class="pcv pos" id="pl-rev">$—</div></div>
       <div class="pc"><div class="pcl">Total costs</div><div class="pcv neg" id="pl-costs">$—</div></div>
-      <div class="pc"><div class="pcl">Net profit</div><div class="pcv" id="pl-net">$—</div></div>
+      <div class="pc profit-hover-wrap" style="position:relative;cursor:default">
+        <div class="pcl">Net profit <span style="font-size:10px;color:var(--text3)">hover ↗</span></div>
+        <div class="pcv" id="pl-net">$—</div>
+        <div class="profit-breakdown" id="profit-breakdown">
+          <div class="pb-row"><span class="pb-lbl">📅 Daily</span><span class="pb-val" id="pb-day">$—</span></div>
+          <div class="pb-row"><span class="pb-lbl">📆 Weekly</span><span class="pb-val" id="pb-week">$—</span></div>
+          <div class="pb-row"><span class="pb-lbl">🗓 Monthly</span><span class="pb-val" id="pb-month">$—</span></div>
+          <div class="pb-row"><span class="pb-lbl">📊 Yearly</span><span class="pb-val" id="pb-year">$—</span></div>
+        </div>
+      </div>
       <div class="pc"><div class="pcl">ROI on ad spend</div><div class="pcv" id="pl-roi">—</div></div>
     </div>
 
@@ -636,6 +661,18 @@ function calcProj(){
   $('pl-rev').textContent=usd(grev,0);$('pl-costs').textContent='-'+usd(totalCosts,0);
   const ne=$('pl-net');ne.textContent=(net>=0?'+':'')+usd(net,0);ne.className='pcv'+(net>=0?' pos':' neg');
   $('pl-roi').textContent=roi.toFixed(1)+'%';$('pl-roi').className='pcv'+(roi>=0?' pos':' neg');
+
+  // Profit breakdown tooltip — always show day/week/month/year regardless of selected period
+  const netPerDay ={day:net,week:net/7,   month:net/30,  year:net/365}[period];
+  const netPerWeek={day:net*7,week:net,   month:net*7/30,year:net*7/365}[period];
+  const netPerMonth={day:net*30,week:net*30/7,month:net,  year:net/12}[period];
+  const netPerYear={day:net*365,week:net*365/7,month:net*12,year:net}[period];
+  const pbFmt=n=>(n>=0?'+':'')+usd(n,0);
+  const pbCls=n=>n>=0?'pb-val pos':'pb-val neg';
+  $('pb-day').textContent=pbFmt(netPerDay);   $('pb-day').className=pbCls(netPerDay);
+  $('pb-week').textContent=pbFmt(netPerWeek); $('pb-week').className=pbCls(netPerWeek);
+  $('pb-month').textContent=pbFmt(netPerMonth);$('pb-month').className=pbCls(netPerMonth);
+  $('pb-year').textContent=pbFmt(netPerYear); $('pb-year').className=pbCls(netPerYear);
   if(target>0){
     $('target-box').classList.remove('hidden');
     const pp=ppl(v);
