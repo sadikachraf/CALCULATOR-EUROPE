@@ -429,6 +429,7 @@ input:focus,select:focus{border-color:var(--green)}
         <button class="pbtn" onclick="setPeriod('day')">Day</button>
         <button class="pbtn active" onclick="setPeriod('week')">Week</button>
         <button class="pbtn" onclick="setPeriod('month')">Month</button>
+        <button class="pbtn" onclick="setPeriod('year')">Year</button>
       </div>
     </div>
     <div class="ga" style="margin-bottom:.5rem">
@@ -476,6 +477,12 @@ input:focus,select:focus{border-color:var(--green)}
           <span style="font-size:12px;color:var(--text2)">Monthly:</span>
           <span style="font-size:16px;font-weight:700;color:var(--text)" id="eq-month-val">$—</span>
           <span style="font-size:11px;color:var(--text3)" id="eq-month-leads"></span>
+        </div>
+        <span style="color:var(--border2);font-size:18px">·</span>
+        <div id="eq-year" style="display:flex;align-items:center;gap:.5rem">
+          <span style="font-size:12px;color:var(--text2)">Yearly:</span>
+          <span style="font-size:16px;font-weight:700;color:var(--text)" id="eq-year-val">$—</span>
+          <span style="font-size:11px;color:var(--text3)" id="eq-year-leads"></span>
         </div>
       </div>
     </div>
@@ -606,7 +613,7 @@ function calc(){
 }
 
 let period='week';
-const PL={day:'/ day',week:'/ week',month:'/ month'};
+const PL={day:'/ day',week:'/ week',month:'/ month',year:'/ year'};
 function setPeriod(p){
   period=p;
   document.querySelectorAll('.pbtn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===p));
@@ -637,9 +644,10 @@ function calcProj(){
   }else $('target-box').classList.add('hidden');
 
   // Budget equivalents — convert to the other two periods
-  const toDay  ={day:1,   week:1/7,  month:1/30}[period];
-  const toWeek ={day:7,   week:1,    month:7/30}[period];
-  const toMonth={day:30,  week:30/7, month:1   }[period];
+  const toDay  ={day:1,     week:1/7,    month:1/30,   year:1/365}[period];
+  const toWeek ={day:7,     week:1,      month:7/30,   year:7/365}[period];
+  const toMonth={day:30,    week:30/7,   month:1,      year:1/12 }[period];
+  const toYear ={day:365,   week:365/7,  month:12,     year:1    }[period];
   const leadsPerBudget=cpl>0?1/cpl:0;
   function eqBlock(mult, periodId){
     const b=budget*mult, l=b*leadsPerBudget*cr*dr;
@@ -652,6 +660,7 @@ function calcProj(){
   eqBlock(toDay,  'day');
   eqBlock(toWeek, 'week');
   eqBlock(toMonth,'month');
+  eqBlock(toYear, 'year');
 }
 
 async function fetchRates(){
