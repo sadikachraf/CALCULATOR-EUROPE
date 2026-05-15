@@ -157,6 +157,27 @@ input:focus,select:focus{border-color:var(--green)}
 
 .hidden{display:none!important}
 .pos{color:var(--green)!important}.neg{color:var(--red)!important}
+
+/* EXPORT BAR */
+.export-bar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border2);padding:.75rem 2rem;z-index:300;box-shadow:0 -4px 16px rgba(0,0,0,0.08)}
+.export-bar-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+.export-label{font-size:12px;font-weight:600;color:var(--text2);flex-shrink:0}
+.export-sep{width:1px;height:20px;background:var(--border2);flex-shrink:0}
+.btn-export{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
+.btn-xl{background:var(--green);color:#fff}.btn-xl:hover{opacity:.88}
+.btn-copy{background:var(--surface2);color:var(--text);border:1px solid var(--border2)}.btn-copy:hover{background:var(--surface3)}
+.btn-print{background:var(--surface2);color:var(--text);border:1px solid var(--border2)}.btn-print:hover{background:var(--surface3)}
+.export-toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--surface);padding:8px 16px;border-radius:20px;font-size:12px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:400;white-space:nowrap}
+.export-toast.show{opacity:1}
+
+/* PRINT */
+@media print{
+  header,.rates-bar,.sku-banner,.export-bar,#uzone,#mapper,#upload-status,.sdiv,.btn,.uzone{display:none!important}
+  body{background:#fff;font-size:12px}
+  main{padding:1rem}
+  .card{box-shadow:none;border:1px solid #ddd;break-inside:avoid}
+  .g2{grid-template-columns:1fr 1fr}
+}
 </style>
 </head>
 <body>
@@ -431,6 +452,31 @@ input:focus,select:focus{border-color:var(--green)}
       <div class="pc"><div class="pcl">Net profit</div><div class="pcv" id="pl-net">$—</div></div>
       <div class="pc"><div class="pcl">ROI on ad spend</div><div class="pcv" id="pl-roi">—</div></div>
     </div>
+
+    <!-- Budget equivalents -->
+    <div id="budget-equiv" style="margin-top:1rem;padding:.875rem 1rem;background:var(--surface2);border-radius:var(--r);border:1px solid var(--border)">
+      <p style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.625rem">📅 Budget equivalents</p>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center">
+        <div id="eq-day" style="display:flex;align-items:center;gap:.5rem">
+          <span style="font-size:12px;color:var(--text2)">Daily:</span>
+          <span style="font-size:16px;font-weight:700;color:var(--text)" id="eq-day-val">$—</span>
+          <span style="font-size:11px;color:var(--text3)" id="eq-day-leads"></span>
+        </div>
+        <span style="color:var(--border2);font-size:18px">·</span>
+        <div id="eq-week" style="display:flex;align-items:center;gap:.5rem">
+          <span style="font-size:12px;color:var(--text2)">Weekly:</span>
+          <span style="font-size:16px;font-weight:700;color:var(--text)" id="eq-week-val">$—</span>
+          <span style="font-size:11px;color:var(--text3)" id="eq-week-leads"></span>
+        </div>
+        <span style="color:var(--border2);font-size:18px">·</span>
+        <div id="eq-month" style="display:flex;align-items:center;gap:.5rem">
+          <span style="font-size:12px;color:var(--text2)">Monthly:</span>
+          <span style="font-size:16px;font-weight:700;color:var(--text)" id="eq-month-val">$—</span>
+          <span style="font-size:11px;color:var(--text3)" id="eq-month-leads"></span>
+        </div>
+      </div>
+    </div>
+
     <div class="target-box hidden" id="target-box">
       <p style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:.5rem">🎯 To hit your profit target</p>
       <div style="display:flex;gap:1.5rem;flex-wrap:wrap;font-size:13px">
@@ -441,6 +487,23 @@ input:focus,select:focus{border-color:var(--green)}
   </div>
 
 </main>
+
+<!-- FLOATING EXPORT BAR -->
+<div class="export-bar">
+  <div class="export-bar-inner">
+    <span class="export-label">💾 Save results</span>
+    <span class="export-sep"></span>
+    <button class="btn-export btn-xl" onclick="exportXLSX()">⬇ Download Excel</button>
+    <button class="btn-export btn-copy" onclick="copyEmailSummary()">📋 Copy for Email</button>
+    <button class="btn-export btn-print" onclick="window.print()">🖨 Print / PDF</button>
+    <span style="margin-left:auto;display:flex;align-items:center;gap:.5rem;flex-shrink:0">
+      <span style="font-size:11px;color:var(--text3)">Report name:</span>
+      <input type="text" id="report-name" value="COD Report" style="width:130px;padding:5px 8px;font-size:12px;border-radius:var(--rs);border:1px solid var(--border2);background:var(--surface2);color:var(--text);outline:none">
+    </span>
+  </div>
+</div>
+<div class="export-toast" id="export-toast"></div>
+<div style="height:66px"></div>
 
 <script>
 const COUNTRIES={
@@ -566,6 +629,23 @@ function calcProj(){
     if(pp>0){const rLeads=(target+fixed)/pp;$('tgt-budget').textContent=usd(rLeads*cpl,0);$('tgt-leads').textContent=fn(rLeads);}
     else{$('tgt-budget').textContent='∞ not profitable';$('tgt-leads').textContent='—';}
   }else $('target-box').classList.add('hidden');
+
+  // Budget equivalents — convert to the other two periods
+  const toDay  ={day:1,   week:1/7,  month:1/30}[period];
+  const toWeek ={day:7,   week:1,    month:7/30}[period];
+  const toMonth={day:30,  week:30/7, month:1   }[period];
+  const leadsPerBudget=cpl>0?1/cpl:0;
+  function eqBlock(mult, periodId){
+    const b=budget*mult, l=b*leadsPerBudget*cr*dr;
+    const highlight=period===periodId;
+    $('eq-'+periodId+'-val').textContent=usd(b,0);
+    $('eq-'+periodId+'-val').style.color=highlight?'var(--green)':'var(--text)';
+    $('eq-'+periodId+'-leads').textContent=cpl>0?'('+fn(b/cpl)+' leads)':'';
+    $('eq-'+periodId).style.opacity=highlight?'0.45':'1';
+  }
+  eqBlock(toDay,  'day');
+  eqBlock(toWeek, 'week');
+  eqBlock(toMonth,'month');
 }
 
 async function fetchRates(){
@@ -656,6 +736,127 @@ function clearSKU(){activeSKU='';if($('sku-select'))$('sku-select').value='';$('
 
 $('country').addEventListener('change',()=>{updateCountryUI();calc();});
 updateCountryUI();fetchRates();setPeriod('week');
+
+/* ── EXPORT ── */
+function showToast(msg){const t=$('export-toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+function getReportMeta(){
+  const c=getC(),v=getVars();
+  const sku=activeSKU||'All SKUs';
+  const name=$('report-name').value||'COD Report';
+  const date=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  return{c,v,sku,name,date};
+}
+
+function exportXLSX(){
+  const{c,v,sku,name,date}=getReportMeta();
+  const{aovL,aoq,aovE,aovU,cr,dr,cpl,N,pc,cfU,dlU,cdU,retU,tdU,cogsU}=v;
+  const prof=ppl(v);
+  const grev=N*cr*dr*aovU,tcod=N*cr*dr*aovU*COD,tads=N*cpl;
+  const tcf=N*cr*cfU,tdf=N*cr*dr*tdU,trf=N*cr*(1-dr)*retU,tcg=N*cr*dr*cogsU,net=N*prof;
+  const budget=parseFloat($('proj-budget').value)||0,fixed=parseFloat($('proj-fixed').value)||0;
+  const projLeads=cpl>0?budget/cpl:0,projDel=projLeads*cr*dr;
+  const projRev=projDel*aovU,projNet=projRev*(1-COD)-budget-projLeads*cr*cfU-projDel*tdU-projLeads*cr*(1-dr)*retU-projDel*cogsU-fixed;
+
+  const rows=[
+    [name],
+    ['Generated', date, 'Country', c.flag+' '+c.name, 'SKU', sku],
+    [],
+    ['━━ EXCHANGE RATES ━━'],
+    ['EUR → USD', parseFloat($('eurUsd').value), 'Local → EUR', parseFloat($('localToEur').value)],
+    [],
+    ['━━ INPUTS & ASSUMPTIONS ━━'],
+    ['AOV ('+c.curr+')', aovL, 'AOV (EUR)', +aovE.toFixed(2), 'AOV (USD)', +aovU.toFixed(2)],
+    ['AOQ (units/order)', aoq, 'Unit Price ('+c.curr+')', parseFloat($('unitPrice').value)],
+    ['Product Cost/Unit (EUR)', pc, 'Cost per Lead (USD)', cpl],
+    ['Confirmation Rate', cr*100+'%', 'Delivery Rate', dr*100+'%', 'Leads at Scale', N],
+    [],
+    ['━━ COD COST STRUCTURE (USD) ━━'],
+    ['Per Lead (CC)', 'FREE', 'Per Confirmed (CC)', +cfU.toFixed(2)],
+    ['Logistics Delivered', +dlU.toFixed(2), 'CC Delivery Fee', +cdU.toFixed(2)],
+    ['Per Return', +retU.toFixed(2), 'COD Fee', '5%'],
+    [],
+    ['━━ SECTION 1 — BREAKEVEN THRESHOLDS ━━'],
+    ['Profit per Lead (USD)', +prof.toFixed(2)],
+    ['Max CPL (USD)', +Math.max(0,prof+cpl).toFixed(2)],
+    ['Min Confirmation Rate', $('be-cr').textContent],
+    ['Min Delivery Rate', $('be-dr').textContent],
+    [],
+    ['━━ SECTION 2 — PROFIT AT SCALE ('+N+' leads) ━━'],
+    ['Leads', N, 'Confirmed', Math.round(N*cr), 'Delivered', Math.round(N*cr*dr)],
+    [],
+    ['Gross Revenue (USD)', +grev.toFixed(2)],
+    ['COD Fees (5%)', +(tcod).toFixed(2)],
+    ['Ad Spend', +tads.toFixed(2)],
+    ['Confirmation Fees (CC)', +tcf.toFixed(2)],
+    ['Delivery Fees (logistics+CC)', +tdf.toFixed(2)],
+    ['Return Fees', +trf.toFixed(2)],
+    ['Product COGS', +tcg.toFixed(2)],
+    ['NET PROFIT (USD)', +net.toFixed(2)],
+    [],
+    ['Revenue / Lead', +(N?grev/N:0).toFixed(2), 'Cost / Lead', +(N?(grev-net)/N:0).toFixed(2)],
+    ['Profit Margin', +(grev?(net/grev)*100:0).toFixed(1)+'%', 'ROAS', +(tads?grev/tads:0).toFixed(2)+'x'],
+    [],
+    ['━━ BUDGET PROJECTOR ('+period.toUpperCase()+') ━━'],
+    ['Ad Budget (USD)', budget, 'Fixed Costs (USD)', fixed, 'Period', period],
+    ['Leads', +projLeads.toFixed(0), 'Confirmed', +Math.round(projLeads*cr), 'Delivered', +Math.round(projDel)],
+    ['Pieces Shipped', +Math.round(projDel*aoq), 'Gross Revenue', +projRev.toFixed(2)],
+    ['Net Profit (after fixed)', +projNet.toFixed(2)],
+  ];
+
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  // Column widths
+  ws['!cols']=[{wch:32},{wch:16},{wch:22},{wch:16},{wch:16},{wch:16}];
+  // Bold first cell of each section
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Report');
+  XLSX.writeFile(wb,(name.replace(/\s+/g,'_')+'_'+date.replace(/\s/g,'-')+'.xlsx'));
+  showToast('✅ Excel file downloaded!');
+}
+
+function copyEmailSummary(){
+  const{c,v,sku,name,date}=getReportMeta();
+  const{aovL,aovU,aoq,cr,dr,cpl,N,pc}=v;
+  const prof=ppl(v);
+  const grev=N*cr*dr*aovU,tads=N*cpl,net=N*prof;
+  const mg=grev?(net/grev)*100:0;
+  const text=`
+${name}
+Generated: ${date} · ${c.flag} ${c.name} · SKU: ${sku}
+${'─'.repeat(48)}
+
+INPUTS
+  AOV: ${Math.round(aovL).toLocaleString()} ${c.curr} (${usd(aovU)})
+  AOQ: ${aoq.toFixed(2)} units/order
+  Product Cost: €${pc}/unit
+  CPL: ${usd(cpl)}
+  Confirmation Rate: ${(cr*100).toFixed(0)}%
+  Delivery Rate: ${(dr*100).toFixed(0)}%
+
+BREAKEVEN THRESHOLDS
+  Profit per Lead: ${(prof>=0?'+':'')}${usd(prof)}
+  Max CPL: ${usd(Math.max(0,prof+cpl))}
+  Min Confirmation Rate: ${$('be-cr').textContent}
+  Min Delivery Rate: ${$('be-dr').textContent}
+
+PROFIT AT SCALE (${N.toLocaleString()} leads)
+  Leads → Confirmed: ${Math.round(N*cr).toLocaleString()} → Delivered: ${Math.round(N*cr*dr).toLocaleString()}
+  Gross Revenue: ${usd(grev,0)}
+  Ad Spend: -${usd(tads,0)}
+  Net Profit: ${(net>=0?'+':'')}${usd(net,0)}
+  Profit Margin: ${mg.toFixed(1)}%
+
+BUDGET PROJECTOR (${period})
+  Ad Budget: ${usd(parseFloat($('proj-budget').value)||0,0)}
+  Leads: ${$('pl-leads').textContent}  Delivered: ${$('pl-del').textContent}
+  Revenue: ${$('pl-rev').textContent}  Net Profit: ${$('pl-net').textContent}
+${'─'.repeat(48)}
+COD Profit Calculator · Europe
+`.trim();
+  navigator.clipboard.writeText(text).then(()=>showToast('📋 Copied to clipboard! Paste anywhere.')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('📋 Copied!');
+  });
+}
 </script>
 </body>
 </html>
