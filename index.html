@@ -531,6 +531,7 @@ input:focus,select:focus{border-color:var(--green)}
     <button class="btn-export btn-xl" onclick="exportXLSX()">⬇ Download Excel</button>
     <button class="btn-export btn-copy" onclick="copyEmailSummary()">📋 Copy for Email</button>
     <button class="btn-export btn-print" onclick="window.print()">🖨 Print / PDF</button>
+    <button class="btn-export" onclick="resetAll()" style="background:var(--red-l);color:var(--red);border:1px solid var(--red)">🔄 Reset</button>
     <span style="margin-left:auto;display:flex;align-items:center;gap:.5rem;flex-shrink:0">
       <span style="font-size:11px;color:var(--text3)">Report name:</span>
       <input type="text" id="report-name" value="COD Report" style="width:130px;padding:5px 8px;font-size:12px;border-radius:var(--rs);border:1px solid var(--border2);background:var(--surface2);color:var(--text);outline:none">
@@ -787,7 +788,59 @@ function resetSKU(){$('sku-select').value='';activeSKU='';refreshPreview();}
 function clearSKU(){activeSKU='';if($('sku-select'))$('sku-select').value='';$('sku-banner').style.display='none';if(rows.length)refreshPreview();}
 
 $('country').addEventListener('change',()=>{updateCountryUI();calc();});
-updateCountryUI();fetchRates();setPeriod('week');
+
+/* ── PERSIST (localStorage) ── */
+const SAVE_FIELDS=['country','eurUsd','localToEur','aov','aoq','unitPrice','productCost','cpl','crInput','drInput','leadsScale','proj-budget','proj-fixed','proj-target','report-name'];
+const LS_KEY='cod_calc_v1';
+
+function saveState(){
+  const state={period};
+  SAVE_FIELDS.forEach(id=>{const el=$(id);if(el)state[id]=el.value;});
+  try{localStorage.setItem(LS_KEY,JSON.stringify(state));}catch(e){}
+}
+
+function loadState(){
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(!raw)return false;
+    const s=JSON.parse(raw);
+    // country first so updateCountryUI gets right context
+    if(s.country&&$(s.country!==undefined&&'country'))$('country').value=s.country;
+    updateCountryUI();
+    SAVE_FIELDS.filter(id=>id!=='country').forEach(id=>{
+      if(s[id]!==undefined&&$(id))$(id).value=s[id];
+    });
+    if(s.period)setPeriod(s.period);
+    return true;
+  }catch(e){return false;}
+}
+
+function resetAll(){
+  if(!confirm('Reset all inputs to defaults?'))return;
+  try{localStorage.removeItem(LS_KEY);}catch(e){}
+  // restore defaults
+  $('country').value='hungary';updateCountryUI();
+  $('aov').value='14900';$('aoq').value='1';$('unitPrice').value='14900';
+  $('productCost').value='5';$('cpl').value='0.50';
+  $('crInput').value='65';$('drInput').value='65';$('leadsScale').value='1000';
+  $('proj-budget').value='1000';$('proj-fixed').value='0';$('proj-target').value='0';
+  $('report-name').value='COD Report';
+  setPeriod('week');
+  fetchRates();
+  showToast('🔄 Reset to defaults');
+}
+
+// Auto-save on any input change
+document.querySelectorAll('input,select').forEach(el=>{
+  el.addEventListener('change',saveState);
+  el.addEventListener('input',saveState);
+});
+
+// Init
+const hadSaved=loadState();
+if(!hadSaved){updateCountryUI();setPeriod('week');}
+fetchRates();
+
 
 /* ── EXPORT ── */
 function showToast(msg){const t=$('export-toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
