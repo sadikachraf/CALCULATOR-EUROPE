@@ -196,6 +196,9 @@ input:focus,select:focus{border-color:var(--green)}
       <option value="slovenia">🇸🇮 Slovenia (EUR)</option>
       <option value="croatia">🇭🇷 Croatia (EUR)</option>
       <option value="austria">🇦🇹 Austria (EUR)</option>
+      <option value="italy">🇮🇹 Italy (EUR)</option>
+      <option value="spain">🇪🇸 Spain (EUR)</option>
+      <option value="portugal">🇵🇹 Portugal (EUR)</option>
     </select>
     <span class="hsep"></span>
     <span id="rbadge" class="rbadge fallback"><span class="rdot"></span><span id="rbtext">Fetching…</span></span>
@@ -516,7 +519,10 @@ const COUNTRIES={
   slovakia:{flag:'🇸🇰',name:'Slovakia',      curr:'EUR',fallback:1,       delivered:5.99,returned:7.99},
   slovenia:{flag:'🇸🇮',name:'Slovenia',      curr:'EUR',fallback:1,       delivered:4.99,returned:5.99},
   croatia: {flag:'🇭🇷',name:'Croatia',       curr:'EUR',fallback:1,       delivered:5.99,returned:7.99},
-  austria: {flag:'🇦🇹',name:'Austria',       curr:'EUR',fallback:1,       delivered:6.99,returned:6.99}
+  austria: {flag:'🇦🇹',name:'Austria',       curr:'EUR',fallback:1,       delivered:6.99,returned:6.99},
+  italy:   {flag:'🇮🇹',name:'Italy',         curr:'EUR',fallback:1,       delivered:8.99,returned:9.99},
+  spain:   {flag:'🇪🇸',name:'Spain',         curr:'EUR',fallback:1,       delivered:7.99,returned:6.99},
+  portugal:{flag:'🇵🇹',name:'Portugal',      curr:'EUR',fallback:1,       delivered:7.99,returned:6.99}
 };
 const CC_CONF=1,CC_DEL=1.5,COD=0.05,FEUR=1.1713;
 const $=id=>document.getElementById(id);
