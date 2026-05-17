@@ -174,7 +174,40 @@ input:focus,select:focus{border-color:var(--green)}
 .hidden{display:none!important}
 .pos{color:var(--green)!important}.neg{color:var(--red)!important}
 
-/* EXPORT BAR */
+/* TABS */
+.tab-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem}
+.tab-nav-inner{max-width:1200px;margin:0 auto;display:flex;gap:0}
+.tab-btn{padding:0 1.25rem;height:40px;font-size:13px;font-weight:600;color:var(--text3);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--green);border-bottom-color:var(--green)}
+.page{display:none}.page.active{display:block}
+
+/* REAL RESULTS */
+.status-map{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem;margin-top:.75rem}
+.status-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:.75rem 1rem}
+.status-box-title{font-size:11px;font-weight:700;color:var(--text3);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.05em}
+.status-tag-input{width:100%;padding:6px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface);color:var(--text);font-size:12px;outline:none}
+.status-tag-input:focus{border-color:var(--green)}
+.big-stat{background:var(--surface2);border-radius:var(--r);padding:1.25rem 1.5rem}
+.big-stat-label{font-size:11px;color:var(--text2);margin-bottom:4px}
+.big-stat-val{font-size:32px;font-weight:800;line-height:1;color:var(--text)}
+.big-stat-sub{font-size:11px;color:var(--text3);margin-top:4px}
+.big-stat.green{background:var(--green)}.big-stat.green .big-stat-label{color:rgba(255,255,255,.6)}.big-stat.green .big-stat-val{color:#fff}.big-stat.green .big-stat-sub{color:rgba(255,255,255,.5)}
+.big-stat.loss{background:var(--red-l)}.big-stat.loss .big-stat-val{color:var(--red)}
+.funnel{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin:.875rem 0}
+.funnel-step{background:var(--surface2);border-radius:var(--rs);padding:.75rem .875rem;text-align:center;position:relative}
+.funnel-step-lbl{font-size:10px;color:var(--text3);margin-bottom:4px}
+.funnel-step-val{font-size:18px;font-weight:700}
+.funnel-step-pct{font-size:11px;color:var(--text3);margin-top:2px}
+.rr-plr{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--text2)}
+.rr-plr:last-child{border-bottom:none}
+.rr-plr.tot{color:var(--text);font-weight:700;font-size:15px;padding-top:10px;border-top:1px solid var(--border2);margin-top:4px;border-bottom:none}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem}
+.compare-col{background:var(--surface2);border-radius:var(--r);padding:1rem}
+.compare-col-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:.75rem}
+.compare-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border);color:var(--text2)}
+.compare-row:last-child{border-bottom:none}
+.compare-row strong{color:var(--text);font-weight:600}
 .export-bar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border2);padding:.75rem 2rem;z-index:300;box-shadow:0 -4px 16px rgba(0,0,0,0.08)}
 .export-bar-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
 .export-label{font-size:12px;font-weight:600;color:var(--text2);flex-shrink:0}
@@ -221,6 +254,14 @@ input:focus,select:focus{border-color:var(--green)}
   </div>
 </header>
 
+<!-- TAB NAV -->
+<div class="tab-nav">
+  <div class="tab-nav-inner">
+    <button class="tab-btn active" onclick="switchTab('projector')">📊 Projector</button>
+    <button class="tab-btn" onclick="switchTab('real')">🔬 Real Results</button>
+  </div>
+</div>
+
 <!-- COMPACT RATES BAR -->
 <div class="rates-bar">
   <div class="rates-toggle" onclick="toggleRates()">
@@ -252,6 +293,7 @@ input:focus,select:focus{border-color:var(--green)}
   </div>
 </div>
 
+<div id="page-projector" class="page active">
 <main>
 
   <!-- UPLOAD -->
@@ -540,6 +582,149 @@ input:focus,select:focus{border-color:var(--green)}
 </div>
 <div class="export-toast" id="export-toast"></div>
 <div style="height:66px"></div>
+</div><!-- end page-projector -->
+
+<!-- ══ REAL RESULTS PAGE ══ -->
+<div id="page-real" class="page">
+<main>
+
+  <div class="sdiv"><span class="sdivc">🔬 Real Leads Analysis — Actual P&L from your data</span><span class="sdivl"></span></div>
+
+  <!-- Step 1: Upload -->
+  <div class="card">
+    <p class="ctitle">Step 1 — Upload your leads sheet</p>
+    <div class="uzone" id="rr-uzone">
+      <div style="font-size:1.75rem;margin-bottom:.5rem">📋</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:3px">Drop your leads export here</div>
+      <div style="font-size:12px;color:var(--text2)">Each row = one lead · .csv, .xlsx, .xls</div>
+      <input type="file" id="rr-file-input" accept=".csv,.xlsx,.xls">
+    </div>
+    <div id="rr-upload-status"></div>
+
+    <!-- Column mapping -->
+    <div id="rr-mapper" class="hidden">
+      <div class="divider"></div>
+      <p style="font-size:13px;font-weight:600;margin-bottom:3px">Step 2 — Map your columns</p>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:.75rem">Tell us which column contains each key piece of info.</p>
+      <div class="cmap">
+        <div class="field">
+          <div class="fl">Status column <span class="tag">required</span></div>
+          <select id="rr-col-status"><option value="">— select —</option></select>
+        </div>
+        <div class="field">
+          <div class="fl">Order Total <span class="tag">local currency</span></div>
+          <select id="rr-col-total"><option value="">— skip —</option></select>
+        </div>
+        <div class="field">
+          <div class="fl">Quantity <span class="tag">units/order</span></div>
+          <select id="rr-col-qty"><option value="">— skip —</option></select>
+        </div>
+        <div class="field">
+          <div class="fl">SKU / Product <span class="tag">optional</span></div>
+          <select id="rr-col-sku"><option value="">— skip —</option></select>
+        </div>
+        <div class="field">
+          <div class="fl">Ad Cost / Lead <span class="tag">optional</span></div>
+          <select id="rr-col-cost"><option value="">— skip —</option></select>
+        </div>
+      </div>
+
+      <!-- Status mapping -->
+      <div style="margin-top:1rem">
+        <p style="font-size:13px;font-weight:600;margin-bottom:3px">Step 3 — Map your status values</p>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:.75rem">Type the exact status labels from your sheet (comma-separated if multiple, e.g. <em>livré, delivered, done</em>).</p>
+        <div class="status-map">
+          <div class="status-box" style="border-color:var(--green)">
+            <div class="status-box-title" style="color:var(--green)">✅ Delivered</div>
+            <input class="status-tag-input" id="rr-s-delivered" placeholder="livré, delivered, done…">
+          </div>
+          <div class="status-box" style="border-color:var(--amber)">
+            <div class="status-box-title" style="color:var(--amber)">📞 Confirmed (not yet delivered)</div>
+            <input class="status-tag-input" id="rr-s-confirmed" placeholder="confirmé, confirmed, en cours…">
+          </div>
+          <div class="status-box" style="border-color:var(--red)">
+            <div class="status-box-title" style="color:var(--red)">↩ Returned / Not delivered</div>
+            <input class="status-tag-input" id="rr-s-returned" placeholder="retourné, returned, non livré…">
+          </div>
+          <div class="status-box">
+            <div class="status-box-title">❌ Cancelled / Refused</div>
+            <input class="status-tag-input" id="rr-s-cancelled" placeholder="annulé, cancelled, refusé…">
+          </div>
+        </div>
+      </div>
+
+      <!-- Cost overrides -->
+      <div style="margin-top:1rem">
+        <p style="font-size:13px;font-weight:600;margin-bottom:.5rem">Step 4 — Cost inputs <span style="font-size:11px;font-weight:400;color:var(--text3)">(pulled from main calculator — override if needed)</span></p>
+        <div class="ga" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
+          <div class="field">
+            <div class="fl">CPL <span class="tag">USD</span></div>
+            <input type="number" id="rr-cpl" value="0.50" step="0.01" min="0">
+          </div>
+          <div class="field">
+            <div class="fl">Product Cost/Unit <span class="tag">EUR</span></div>
+            <input type="number" id="rr-cogs" value="5" step="0.01" min="0">
+          </div>
+          <div class="field">
+            <div class="fl">SKU filter <span class="tag">optional</span></div>
+            <select id="rr-sku-select"><option value="">All SKUs</option></select>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="btn bg" onclick="runRealAnalysis()">⚡ Run Real Analysis</button>
+        <button class="btn bo" onclick="rrResetSKU()">Show all SKUs</button>
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div id="rr-preview-section" class="hidden">
+      <div class="divider"></div>
+      <p style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:.375rem" id="rr-preview-lbl">Preview — first 5 rows</p>
+      <div class="ptw"><table class="ptbl" id="rr-preview-table"></table></div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="rr-results" class="hidden">
+
+    <div class="sdiv" style="margin-top:1.5rem"><span class="sdivc">📈 Real Performance</span><span class="sdivl"></span></div>
+
+    <!-- Funnel -->
+    <div class="card">
+      <p class="ctitle" id="rr-funnel-title">Lead Funnel</p>
+      <div class="funnel" id="rr-funnel"></div>
+      <div style="display:flex;gap:.625rem;flex-wrap:wrap;margin-top:.5rem" id="rr-unknown-row"></div>
+    </div>
+
+    <!-- Big stats row -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-top:1rem" id="rr-big-stats"></div>
+
+    <!-- Real P&L -->
+    <div class="g2" style="margin-top:1rem">
+      <div class="card">
+        <div class="sh">Real P&amp;L</div>
+        <div class="ss">Based on actual leads from your sheet · all in USD.</div>
+        <div id="rr-pl-rows"></div>
+      </div>
+      <div class="card">
+        <div class="sh">vs. Projector assumptions</div>
+        <div class="ss">How your real numbers compare to what the projector assumed.</div>
+        <div id="rr-compare"></div>
+      </div>
+    </div>
+
+    <!-- Per-lead breakdown -->
+    <div class="card" style="margin-top:1rem">
+      <p class="ctitle">Per-lead economics (real)</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px" id="rr-per-lead"></div>
+    </div>
+
+  </div>
+
+</main>
+</div><!-- end page-real -->
 
 <script>
 const COUNTRIES={
@@ -961,6 +1146,201 @@ COD Profit Calculator · Europe
   navigator.clipboard.writeText(text).then(()=>showToast('📋 Copied to clipboard! Paste anywhere.')).catch(()=>{
     const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('📋 Copied!');
   });
+}
+
+/* ── TAB SWITCHING ── */
+function switchTab(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+name));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().includes(name==='real'?'real':'projector')));
+  if(name==='real'){$('rr-cpl').value=$('cpl').value;$('rr-cogs').value=$('productCost').value;}
+}
+
+/* ── REAL RESULTS ── */
+let rrRows=[],rrHdrs=[];
+const rrUz=$('rr-uzone');
+rrUz.addEventListener('click',()=>$('rr-file-input').click());
+rrUz.addEventListener('dragover',e=>{e.preventDefault();rrUz.classList.add('drag')});
+rrUz.addEventListener('dragleave',()=>rrUz.classList.remove('drag'));
+rrUz.addEventListener('drop',e=>{e.preventDefault();rrUz.classList.remove('drag');rrHandleFile(e.dataTransfer.files[0])});
+$('rr-file-input').addEventListener('change',e=>{rrHandleFile(e.target.files[0]);e.target.value='';});
+
+function rrHandleFile(file){
+  if(!file)return;const ext=file.name.split('.').pop().toLowerCase();
+  if(ext==='csv')Papa.parse(file,{header:true,skipEmptyLines:true,complete:r=>{if(!r.data.length){al('rr-upload-status','No data.','error');return;}rrRows=r.data;rrHdrs=r.meta.fields||[];rrSetup(file.name);},error:e=>al('rr-upload-status','CSV error: '+e.message,'error')});
+  else if(['xlsx','xls'].includes(ext)){const rd=new FileReader();rd.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:'binary'});const ws=wb.Sheets[wb.SheetNames[0]];const data=XLSX.utils.sheet_to_json(ws,{defval:''});if(!data.length){al('rr-upload-status','No data.','error');return;}rrRows=data;rrHdrs=Object.keys(data[0]);rrSetup(file.name);}catch(err){al('rr-upload-status','Excel error: '+err.message,'error');}};rd.readAsBinaryString(file);}
+  else al('rr-upload-status','Upload .csv, .xlsx or .xls','error');
+}
+
+function rrSetup(fname){
+  al('rr-upload-status','✅ <strong>'+fname+'</strong> — '+rrRows.length.toLocaleString()+' rows found. Map columns below.','info');
+  const opts=rrHdrs.map(h=>`<option value="${h}">${h}</option>`).join(''),none='<option value="">— skip —</option>';
+  ['rr-col-status','rr-col-total','rr-col-qty','rr-col-sku','rr-col-cost'].forEach(id=>{$(id).innerHTML=none+opts;});
+  $('rr-col-status').value=guess(rrHdrs,['status','statut','etat','état','state']);
+  $('rr-col-total').value=guess(rrHdrs,TKW);
+  $('rr-col-qty').value=guess(rrHdrs,QKW);
+  $('rr-col-sku').value=guess(rrHdrs,SKW);
+  $('rr-col-cost').value=guess(rrHdrs,['cost','cpl','spend','depense']);
+  autoDetectStatuses();
+  rrBuildSKUList();
+  $('rr-mapper').classList.remove('hidden');
+  rrRenderPreview(rrRows.slice(0,5));
+}
+
+function autoDetectStatuses(){
+  const sc=$('rr-col-status').value;if(!sc)return;
+  const vals=[...new Set(rrRows.map(r=>String(r[sc]||'').trim().toLowerCase()).filter(Boolean))];
+  const matchKw=(list)=>vals.filter(v=>list.some(k=>v.includes(k))).join(', ');
+  $('rr-s-delivered').value=matchKw(['livré','delivered','livre','success','completed','done','réussi']);
+  $('rr-s-confirmed').value=matchKw(['confirmé','confirmed','confirme','en attente','en cours','pending','processing']);
+  $('rr-s-returned').value=matchKw(['retourné','returned','non livré','not delivered','failed','échec']);
+  $('rr-s-cancelled').value=matchKw(['annulé','cancelled','canceled','refusé','refused']);
+}
+
+function rrBuildSKUList(){
+  const sc=$('rr-col-sku').value,sel=$('rr-sku-select');
+  if(!sc){sel.innerHTML='<option value="">All SKUs</option>';return;}
+  const vals=[...new Set(rrRows.map(r=>String(r[sc]||'').trim()).filter(Boolean))].sort();
+  sel.innerHTML='<option value="">All SKUs ('+rrRows.length+')</option>'+vals.map(v=>`<option value="${v}">${v}</option>`).join('');
+}
+$('rr-col-sku').addEventListener('change',rrBuildSKUList);
+function rrResetSKU(){$('rr-sku-select').value='';}
+
+function rrRenderPreview(rows){
+  const h=rrHdrs.slice(0,9);
+  let t='<tr>'+h.map(x=>`<th>${x}</th>`).join('')+'</tr>';
+  rows.forEach(r=>{t+='<tr>'+h.map(x=>`<td>${r[x]??''}</td>`).join('')+'</tr>';});
+  $('rr-preview-table').innerHTML=t;$('rr-preview-section').classList.remove('hidden');
+}
+
+function parseTags(str){return str.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);}
+
+function runRealAnalysis(){
+  const sc=$('rr-col-status').value;
+  if(!sc){al('rr-upload-status','Please select a status column.','warn');return;}
+  const tc=$('rr-col-total').value,qc=$('rr-col-qty').value,skuC=$('rr-col-sku').value,costC=$('rr-col-cost').value;
+  const tagsDel=parseTags($('rr-s-delivered').value);
+  const tagsConf=parseTags($('rr-s-confirmed').value);
+  const tagsRet=parseTags($('rr-s-returned').value);
+  const tagsCan=parseTags($('rr-s-cancelled').value);
+  const cpl=parseFloat($('rr-cpl').value)||0;
+  const cogsEur=parseFloat($('rr-cogs').value)||0;
+  const eu=parseFloat($('eurUsd').value)||FEUR;
+  const l2e=parseFloat($('localToEur').value)||getC().fallback;
+  const cogsUSD=cogsEur*eu;
+  const selectedSKU=$('rr-sku-select').value;
+  const c=getC();
+
+  let rows=rrRows;
+  if(selectedSKU&&skuC)rows=rows.filter(r=>String(r[skuC]||'').trim()===selectedSKU);
+
+  const classify=v=>{
+    const s=String(v||'').trim().toLowerCase();
+    if(tagsDel.some(t=>s.includes(t)))return'delivered';
+    if(tagsRet.some(t=>s.includes(t)))return'returned';
+    if(tagsConf.some(t=>s.includes(t)))return'confirmed';
+    if(tagsCan.some(t=>s.includes(t)))return'cancelled';
+    return'unknown';
+  };
+
+  let counts={delivered:0,confirmed:0,returned:0,cancelled:0,unknown:0};
+  let deliveredLocal=0,deliveredQty=0,totalCostCol=0;
+  const unknownStatuses=new Set();
+
+  rows.forEach(r=>{
+    const cls=classify(r[sc]);
+    counts[cls]++;
+    const t=tc?pn(r[tc]):NaN,q=qc?pn(r[qc]):NaN,co=costC?pn(r[costC]):NaN;
+    if(cls==='delivered'){
+      if(!isNaN(t)&&t>0)deliveredLocal+=t;
+      deliveredQty+=(!isNaN(q)&&q>0)?q:1;
+    }
+    if(!isNaN(co)&&co>0)totalCostCol+=co;
+    if(cls==='unknown')unknownStatuses.add(String(r[sc]||'').trim());
+  });
+
+  const total=rows.length;
+  const realDelivered=counts.delivered;
+  const realConfirmed=counts.confirmed+counts.delivered;
+  const realReturned=counts.returned;
+  const realCR=total>0?realConfirmed/total:0;
+  const realDR=realConfirmed>0?realDelivered/realConfirmed:0;
+  const realAOVLocal=realDelivered>0?deliveredLocal/realDelivered:0;
+  const realAOVUSD=realAOVLocal*l2e*eu;
+  const realAOQ=realDelivered>0?deliveredQty/realDelivered:1;
+
+  // P&L
+  const revenue=realDelivered*realAOVUSD*(1-COD);
+  const codFees=realDelivered*realAOVUSD*COD;
+  const adSpend=costC&&totalCostCol>0?totalCostCol:total*cpl;
+  const confFees=realConfirmed*(CC_CONF*eu);
+  const delFees=realDelivered*((c.delivered+CC_DEL)*eu);
+  const retFees=realReturned*(c.returned*eu);
+  const cogsCost=realDelivered*realAOQ*cogsUSD;
+  const netProfit=revenue-adSpend-confFees-delFees-retFees-cogsCost;
+
+  // Funnel
+  $('rr-funnel-title').textContent='Lead Funnel'+(selectedSKU?' · '+selectedSKU:'')+'  ('+total.toLocaleString()+' total leads)';
+  $('rr-funnel').innerHTML=[
+    {l:'Total Leads',v:total,sub:'100%',col:'var(--text)'},
+    {l:'Confirmed',v:realConfirmed,sub:pct(realCR*100)+' of leads',col:'var(--amber)'},
+    {l:'Delivered',v:realDelivered,sub:pct(realDR*100)+' of conf.',col:'var(--green)'},
+    {l:'Returned',v:realReturned,sub:total>0?pct(realReturned/total*100):'—',col:'var(--red)'},
+    {l:'Cancelled',v:counts.cancelled,sub:total>0?pct(counts.cancelled/total*100):'—',col:'var(--text3)'},
+    {l:'Unknown',v:counts.unknown,sub:'not mapped',col:'var(--text3)'},
+  ].map(s=>`<div class="funnel-step"><div class="funnel-step-lbl">${s.l}</div><div class="funnel-step-val" style="color:${s.col}">${s.v.toLocaleString()}</div><div class="funnel-step-pct">${s.sub}</div></div>`).join('');
+
+  // Unknown warning
+  $('rr-unknown-row').innerHTML=counts.unknown>0?`<div class="alert warn">⚠ ${counts.unknown} leads unmapped: <strong>${[...unknownStatuses].slice(0,6).join(', ')}</strong> — add them above &amp; re-run.</div>`:'';
+
+  // Big stats
+  const pc2=netProfit>=0?'green':'loss';
+  $('rr-big-stats').innerHTML=[
+    {l:'Real AOV',v:realAOVLocal>0?Math.round(realAOVLocal).toLocaleString()+' '+c.curr:'—',sub:realAOVLocal>0?usd(realAOVUSD)+' USD':'No delivered orders',c:''},
+    {l:'Real AOQ',v:realAOQ.toFixed(2),sub:'units per delivered order',c:''},
+    {l:'Conf. Rate',v:pct(realCR*100),sub:realConfirmed+' / '+total+' leads',c:''},
+    {l:'Delivery Rate',v:pct(realDR*100),sub:realDelivered+' / '+realConfirmed+' confirmed',c:''},
+    {l:'Net Profit',v:(netProfit>=0?'+':'')+usd(netProfit,0),sub:total.toLocaleString()+' real leads',c:pc2},
+  ].map(s=>`<div class="big-stat ${s.c}"><div class="big-stat-label">${s.l}</div><div class="big-stat-val">${s.v}</div><div class="big-stat-sub">${s.sub}</div></div>`).join('');
+
+  // Real P&L rows
+  $('rr-pl-rows').innerHTML=[
+    ['Gross revenue',revenue],
+    ['COD fees (5%)',-codFees],
+    ['Ad spend ('+(costC&&totalCostCol>0?'from column':'CPL × leads')+')',-adSpend],
+    ['Confirmation fees (CC)',-confFees],
+    ['Delivery fees (logistics+CC)',-delFees],
+    ['Return fees',-retFees],
+    ['Product COGS',-cogsCost],
+  ].map(([l,v])=>`<div class="rr-plr"><span>${l}</span><span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${usd(v,0)}</span></div>`).join('')
+  +`<div class="rr-plr tot"><span>Net profit</span><span class="${netProfit>=0?'pos':'neg'}">${netProfit>=0?'+':''}${usd(netProfit,0)}</span></div>`;
+
+  // Compare vs projector
+  const projV=getVars();
+  const cmp=(l,real,proj,fmt,hib=true)=>{
+    const d=real-proj,better=hib?d>=0:d<=0;
+    return`<div class="compare-row"><span>${l}</span><div style="display:flex;gap:.5rem;align-items:center"><strong>${fmt(real)}</strong><span style="color:var(--text3);font-size:11px">proj: ${fmt(proj)}</span><span style="font-size:11px;font-weight:700;color:${better?'var(--green)':'var(--red)'}">${d>=0?'▲':'▼'}${fmt(Math.abs(d))}</span></div></div>`;
+  };
+  $('rr-compare').innerHTML=
+    cmp('Conf. rate',realCR*100,projV.cr*100,n=>n.toFixed(1)+'%')
+    +cmp('Delivery rate',realDR*100,projV.dr*100,n=>n.toFixed(1)+'%')
+    +cmp('AOV (local)',realAOVLocal,projV.aovL,n=>Math.round(n).toLocaleString()+' '+c.curr)
+    +cmp('AOQ',realAOQ,projV.aoq,n=>n.toFixed(2))
+    +cmp('Profit / lead',total>0?netProfit/total:0,ppl(projV),n=>usd(n));
+
+  // Per lead
+  const rl=total?revenue/total:0,cl=total?(revenue-netProfit)/total:0,mg=revenue?(netProfit/revenue)*100:0;
+  $('rr-per-lead').innerHTML=[
+    {l:'Revenue / lead',v:usd(rl),c:''},
+    {l:'Cost / lead',v:usd(cl),c:''},
+    {l:'Profit / lead',v:(total?netProfit/total:0)>=0?'+'+usd(netProfit/total):usd(netProfit/total),c:(total?netProfit/total:0)>=0?'pos':'neg'},
+    {l:'Profit margin',v:pct(mg),c:mg>=0?'pos':'neg'},
+    {l:'Real ROAS',v:adSpend>0?(revenue/adSpend).toFixed(2)+'x':'—',c:''},
+    {l:'Profit / delivered',v:realDelivered?usd(netProfit/realDelivered):'—',c:netProfit>=0?'pos':'neg'},
+  ].map(s=>`<div class="chip"><div class="clbl">${s.l}</div><div class="cval ${s.c}">${s.v}</div></div>`).join('');
+
+  $('rr-results').classList.remove('hidden');
+  $('rr-results').scrollIntoView({behavior:'smooth',block:'start'});
+  al('rr-upload-status','✅ Analysis done — '+total.toLocaleString()+' leads processed'+(selectedSKU?' · SKU: '+selectedSKU:''),'info');
 }
 </script>
 </body>
