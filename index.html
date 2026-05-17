@@ -588,139 +588,164 @@ input:focus,select:focus{border-color:var(--green)}
 <div id="page-real" class="page">
 <main>
 
-  <div class="sdiv"><span class="sdivc">🔬 Real Leads Analysis — Actual P&L from your data</span><span class="sdivl"></span></div>
+  <div class="sdiv"><span class="sdivc">📊 Campaign Estimator — from your orders sheet</span><span class="sdivl"></span></div>
+  <p style="font-size:13px;color:var(--text2);margin-bottom:1.25rem">Upload your Google Sheets / Excel orders export → we extract AOV &amp; AOQ automatically → you fill in your Meta spend, confirmation &amp; delivery rate → get the full estimation.</p>
 
-  <!-- Step 1: Upload -->
-  <div class="card">
-    <p class="ctitle">Step 1 — Upload your leads sheet</p>
+  <!-- STEP 1: Upload -->
+  <div class="card" id="wiz-step1">
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.875rem">
+      <span style="width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</span>
+      <div class="sh" style="margin-bottom:0">Upload your orders sheet</div>
+    </div>
     <div class="uzone" id="rr-uzone">
       <div style="font-size:1.75rem;margin-bottom:.5rem">📋</div>
-      <div style="font-size:14px;font-weight:600;margin-bottom:3px">Drop your leads export here</div>
-      <div style="font-size:12px;color:var(--text2)">Each row = one lead · .csv, .xlsx, .xls</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:3px">Drop your Google Sheets export here</div>
+      <div style="font-size:12px;color:var(--text2)">.csv · .xlsx · .xls — one row per order</div>
       <input type="file" id="rr-file-input" accept=".csv,.xlsx,.xls">
     </div>
     <div id="rr-upload-status"></div>
 
-    <!-- Column mapping -->
     <div id="rr-mapper" class="hidden">
       <div class="divider"></div>
-      <p style="font-size:13px;font-weight:600;margin-bottom:3px">Step 2 — Map your columns</p>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:.75rem">Tell us which column contains each key piece of info.</p>
-      <div class="cmap">
+      <p style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:.625rem">Map columns <span style="font-weight:400;color:var(--text3)">— auto-detected, adjust if needed</span></p>
+      <div class="cmap" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
         <div class="field">
-          <div class="fl">Status column <span class="tag">required</span></div>
-          <select id="rr-col-status"><option value="">— select —</option></select>
+          <div class="fl">Order Total <span class="tag" id="rr-curr-tag">local currency</span></div>
+          <select id="rr-col-total"><option value="">— select —</option></select>
         </div>
         <div class="field">
-          <div class="fl">Order Total <span class="tag">local currency</span></div>
-          <select id="rr-col-total"><option value="">— skip —</option></select>
-        </div>
-        <div class="field">
-          <div class="fl">Quantity <span class="tag">units/order</span></div>
+          <div class="fl">Quantity <span class="tag">optional</span></div>
           <select id="rr-col-qty"><option value="">— skip —</option></select>
         </div>
         <div class="field">
           <div class="fl">SKU / Product <span class="tag">optional</span></div>
           <select id="rr-col-sku"><option value="">— skip —</option></select>
         </div>
-        <div class="field">
-          <div class="fl">Ad Cost / Lead <span class="tag">optional</span></div>
-          <select id="rr-col-cost"><option value="">— skip —</option></select>
+      </div>
+      <div id="rr-sku-filter-row" class="hidden" style="margin-top:.75rem;display:flex;align-items:flex-end;gap:.75rem;flex-wrap:wrap">
+        <div class="field" style="min-width:200px">
+          <div class="fl">🎯 Filter by SKU</div>
+          <select id="rr-sku-select"><option value="">All SKUs</option></select>
         </div>
+        <button class="btn bo" onclick="$('rr-sku-select').value=''" style="height:34px">Clear</button>
       </div>
-
-      <!-- Status mapping -->
-      <div style="margin-top:1rem">
-        <p style="font-size:13px;font-weight:600;margin-bottom:3px">Step 3 — Map your status values</p>
-        <p style="font-size:12px;color:var(--text2);margin-bottom:.75rem">Type the exact status labels from your sheet (comma-separated if multiple, e.g. <em>livré, delivered, done</em>).</p>
-        <div class="status-map">
-          <div class="status-box" style="border-color:var(--green)">
-            <div class="status-box-title" style="color:var(--green)">✅ Delivered</div>
-            <input class="status-tag-input" id="rr-s-delivered" placeholder="livré, delivered, done…">
-          </div>
-          <div class="status-box" style="border-color:var(--amber)">
-            <div class="status-box-title" style="color:var(--amber)">📞 Confirmed (not yet delivered)</div>
-            <input class="status-tag-input" id="rr-s-confirmed" placeholder="confirmé, confirmed, en cours…">
-          </div>
-          <div class="status-box" style="border-color:var(--red)">
-            <div class="status-box-title" style="color:var(--red)">↩ Returned / Not delivered</div>
-            <input class="status-tag-input" id="rr-s-returned" placeholder="retourné, returned, non livré…">
-          </div>
-          <div class="status-box">
-            <div class="status-box-title">❌ Cancelled / Refused</div>
-            <input class="status-tag-input" id="rr-s-cancelled" placeholder="annulé, cancelled, refusé…">
-          </div>
-        </div>
-      </div>
-
-      <!-- Cost overrides -->
-      <div style="margin-top:1rem">
-        <p style="font-size:13px;font-weight:600;margin-bottom:.5rem">Step 4 — Cost inputs <span style="font-size:11px;font-weight:400;color:var(--text3)">(pulled from main calculator — override if needed)</span></p>
-        <div class="ga" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
-          <div class="field">
-            <div class="fl">CPL <span class="tag">USD</span></div>
-            <input type="number" id="rr-cpl" value="0.50" step="0.01" min="0">
-          </div>
-          <div class="field">
-            <div class="fl">Product Cost/Unit <span class="tag">EUR</span></div>
-            <input type="number" id="rr-cogs" value="5" step="0.01" min="0">
-          </div>
-          <div class="field">
-            <div class="fl">SKU filter <span class="tag">optional</span></div>
-            <select id="rr-sku-select"><option value="">All SKUs</option></select>
-          </div>
-        </div>
-      </div>
-
-      <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
-        <button class="btn bg" onclick="runRealAnalysis()">⚡ Run Real Analysis</button>
-        <button class="btn bo" onclick="rrResetSKU()">Show all SKUs</button>
-      </div>
+      <button class="btn bg" style="margin-top:.875rem" onclick="rrExtractAOV()">⚡ Extract AOV &amp; AOQ</button>
     </div>
 
-    <!-- Preview -->
     <div id="rr-preview-section" class="hidden">
       <div class="divider"></div>
-      <p style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:.375rem" id="rr-preview-lbl">Preview — first 5 rows</p>
+      <p style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:.375rem">Preview — first 5 rows</p>
       <div class="ptw"><table class="ptbl" id="rr-preview-table"></table></div>
     </div>
   </div>
 
-  <!-- RESULTS -->
-  <div id="rr-results" class="hidden">
-
-    <div class="sdiv" style="margin-top:1.5rem"><span class="sdivc">📈 Real Performance</span><span class="sdivl"></span></div>
-
-    <!-- Funnel -->
-    <div class="card">
-      <p class="ctitle" id="rr-funnel-title">Lead Funnel</p>
-      <div class="funnel" id="rr-funnel"></div>
-      <div style="display:flex;gap:.625rem;flex-wrap:wrap;margin-top:.5rem" id="rr-unknown-row"></div>
+  <!-- STEP 2: AOV confirmed -->
+  <div class="card hidden" id="wiz-step2">
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.875rem">
+      <span style="width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</span>
+      <div class="sh" style="margin-bottom:0">Orders extracted ✅ — confirm values</div>
     </div>
+    <div style="display:flex;gap:.625rem;flex-wrap:wrap;margin-bottom:1rem" id="rr-extracted-pills"></div>
+    <div class="ga" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
+      <div class="field">
+        <div class="fl">AOV <span class="tag" id="rr-aov-tag">local</span> <span class="tip" data-tip="Average order value extracted from your sheet. Edit if needed.">?</span></div>
+        <input type="number" id="rr-aov" value="0" step="1" min="0" oninput="rrLiveCalc()">
+      </div>
+      <div class="field">
+        <div class="fl">AOQ <span class="tag">units/order</span> <span class="tip" data-tip="Average quantity per order extracted from your sheet.">?</span></div>
+        <input type="number" id="rr-aoq" value="1" step="0.01" min="0.01" oninput="rrLiveCalc()">
+      </div>
+      <div class="field">
+        <div class="fl">Product Cost/Unit <span class="tag">EUR</span></div>
+        <input type="number" id="rr-cogs" value="5" step="0.01" min="0" oninput="rrLiveCalc()">
+      </div>
+    </div>
+  </div>
 
-    <!-- Big stats row -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-top:1rem" id="rr-big-stats"></div>
+  <!-- STEP 3: Meta Ads spend -->
+  <div class="card hidden" id="wiz-step3">
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.875rem">
+      <span style="width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</span>
+      <div class="sh" style="margin-bottom:0">Meta Ads spend</div>
+    </div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:.875rem">Enter your total spend across campaigns. Add up to 5 campaigns or periods — we'll sum them.</p>
+    <div id="rr-spend-rows" style="display:flex;flex-direction:column;gap:.5rem">
+      <div class="rr-spend-row" style="display:grid;grid-template-columns:1fr 160px 36px;gap:.5rem;align-items:end">
+        <div class="field"><div class="fl">Campaign / Period</div><input type="text" placeholder="e.g. Week 1, Campaign A…" style="padding:7px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:13px;width:100%;outline:none"></div>
+        <div class="field"><div class="fl">Spend <span class="tag">USD</span></div><input type="number" placeholder="0" step="1" min="0" class="rr-spend-amt" oninput="rrLiveCalc()" style="padding:7px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:13px;width:100%;outline:none"></div>
+        <div style="padding-bottom:1px"><button onclick="rrAddSpend()" class="btn bg" style="width:36px;height:34px;padding:0;justify-content:center;font-size:16px">+</button></div>
+      </div>
+    </div>
+    <div style="margin-top:.75rem;padding:.75rem 1rem;background:var(--surface2);border-radius:var(--rs);display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:12px;color:var(--text2)">Total Meta spend:</span>
+      <span style="font-size:18px;font-weight:700" id="rr-total-spend">$0</span>
+    </div>
+  </div>
 
-    <!-- Real P&L -->
-    <div class="g2" style="margin-top:1rem">
+  <!-- STEP 4: Rates -->
+  <div class="card hidden" id="wiz-step4">
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.875rem">
+      <span style="width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">4</span>
+      <div class="sh" style="margin-bottom:0">Confirmation &amp; Delivery rates</div>
+    </div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:.875rem">Enter your rates — or test different scenarios by adjusting sliders.</p>
+    <div class="g2" style="gap:1.25rem">
+      <div>
+        <div class="fl" style="margin-bottom:.5rem">Confirmation Rate <span class="tag">%</span> <span class="tip" data-tip="% of leads that confirm their order with the call center.">?</span></div>
+        <div style="display:flex;align-items:center;gap:.75rem">
+          <input type="range" id="rr-cr-range" min="0" max="100" value="65" style="flex:1;accent-color:var(--green)" oninput="$('rr-cr').value=this.value;rrLiveCalc()">
+          <input type="number" id="rr-cr" value="65" min="0" max="100" step="1" style="width:72px;padding:7px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:14px;font-weight:700;outline:none" oninput="$('rr-cr-range').value=this.value;rrLiveCalc()">
+          <span style="font-size:14px;font-weight:600;color:var(--text2)">%</span>
+        </div>
+      </div>
+      <div>
+        <div class="fl" style="margin-bottom:.5rem">Delivery Rate <span class="tag">%</span> <span class="tip" data-tip="% of confirmed orders successfully delivered. Test different values.">?</span></div>
+        <div style="display:flex;align-items:center;gap:.75rem">
+          <input type="range" id="rr-dr-range" min="0" max="100" value="65" style="flex:1;accent-color:var(--amber)" oninput="$('rr-dr').value=this.value;rrLiveCalc()">
+          <input type="number" id="rr-dr" value="65" min="0" max="100" step="1" style="width:72px;padding:7px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:14px;font-weight:700;outline:none" oninput="$('rr-dr-range').value=this.value;rrLiveCalc()">
+          <span style="font-size:14px;font-weight:600;color:var(--text2)">%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5: Results -->
+  <div id="rr-results" class="hidden">
+    <div class="sdiv" style="margin-top:1.5rem"><span class="sdivc">📈 Estimation Results</span><span class="sdivl"></span></div>
+
+    <!-- Funnel chips -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:1rem" id="rr-funnel-chips"></div>
+
+    <!-- Big numbers -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1rem" id="rr-big-stats"></div>
+
+    <!-- P&L + per lead -->
+    <div class="g2">
       <div class="card">
-        <div class="sh">Real P&amp;L</div>
-        <div class="ss">Based on actual leads from your sheet · all in USD.</div>
+        <div class="sh">Estimated P&amp;L</div>
+        <div class="ss">Based on your sheet's AOV/AOQ · your Meta spend · your rates.</div>
         <div id="rr-pl-rows"></div>
       </div>
       <div class="card">
-        <div class="sh">vs. Projector assumptions</div>
-        <div class="ss">How your real numbers compare to what the projector assumed.</div>
-        <div id="rr-compare"></div>
+        <div class="sh">Per-lead economics</div>
+        <div class="ss">Every metric broken down per lead generated.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.875rem" id="rr-per-lead"></div>
+        <div style="background:var(--surface2);border-radius:var(--rs);padding:.75rem 1rem">
+          <p style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem">Projected at this scale</p>
+          <div style="display:flex;gap:1rem;flex-wrap:wrap;font-size:12px;color:var(--text2)">
+            Daily: <strong id="rr-scale-day" style="color:var(--text)">—</strong>
+            Weekly: <strong id="rr-scale-week" style="color:var(--text)">—</strong>
+            Monthly: <strong id="rr-scale-month" style="color:var(--text)">—</strong>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Per-lead breakdown -->
-    <div class="card" style="margin-top:1rem">
-      <p class="ctitle">Per-lead economics (real)</p>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px" id="rr-per-lead"></div>
+    <!-- Scenario tester -->
+    <div class="card" style="margin-top:1rem;background:var(--blue-l);border-color:var(--blue)">
+      <p style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem">💡 What if?</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px" id="rr-whatif"></div>
     </div>
-
   </div>
 
 </main>
@@ -1152,11 +1177,12 @@ COD Profit Calculator · Europe
 function switchTab(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+name));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().includes(name==='real'?'real':'projector')));
-  if(name==='real'){$('rr-cpl').value=$('cpl').value;$('rr-cogs').value=$('productCost').value;}
+  if(name==='real') $('rr-cogs').value=$('productCost').value;
 }
 
-/* ── REAL RESULTS ── */
+/* ── REAL RESULTS WIZARD ── */
 let rrRows=[],rrHdrs=[];
+
 const rrUz=$('rr-uzone');
 rrUz.addEventListener('click',()=>$('rr-file-input').click());
 rrUz.addEventListener('dragover',e=>{e.preventDefault();rrUz.classList.add('drag')});
@@ -1165,45 +1191,35 @@ rrUz.addEventListener('drop',e=>{e.preventDefault();rrUz.classList.remove('drag'
 $('rr-file-input').addEventListener('change',e=>{rrHandleFile(e.target.files[0]);e.target.value='';});
 
 function rrHandleFile(file){
-  if(!file)return;const ext=file.name.split('.').pop().toLowerCase();
-  if(ext==='csv')Papa.parse(file,{header:true,skipEmptyLines:true,complete:r=>{if(!r.data.length){al('rr-upload-status','No data.','error');return;}rrRows=r.data;rrHdrs=r.meta.fields||[];rrSetup(file.name);},error:e=>al('rr-upload-status','CSV error: '+e.message,'error')});
+  if(!file)return;
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(ext==='csv')Papa.parse(file,{header:true,skipEmptyLines:true,complete:r=>{if(!r.data.length){al('rr-upload-status','No data found.','error');return;}rrRows=r.data;rrHdrs=r.meta.fields||[];rrSetup(file.name);},error:e=>al('rr-upload-status','CSV error: '+e.message,'error')});
   else if(['xlsx','xls'].includes(ext)){const rd=new FileReader();rd.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:'binary'});const ws=wb.Sheets[wb.SheetNames[0]];const data=XLSX.utils.sheet_to_json(ws,{defval:''});if(!data.length){al('rr-upload-status','No data.','error');return;}rrRows=data;rrHdrs=Object.keys(data[0]);rrSetup(file.name);}catch(err){al('rr-upload-status','Excel error: '+err.message,'error');}};rd.readAsBinaryString(file);}
   else al('rr-upload-status','Upload .csv, .xlsx or .xls','error');
 }
 
 function rrSetup(fname){
-  al('rr-upload-status','✅ <strong>'+fname+'</strong> — '+rrRows.length.toLocaleString()+' rows found. Map columns below.','info');
+  al('rr-upload-status','✅ <strong>'+fname+'</strong> — '+rrRows.length.toLocaleString()+' rows. Select columns below.','info');
   const opts=rrHdrs.map(h=>`<option value="${h}">${h}</option>`).join(''),none='<option value="">— skip —</option>';
-  ['rr-col-status','rr-col-total','rr-col-qty','rr-col-sku','rr-col-cost'].forEach(id=>{$(id).innerHTML=none+opts;});
-  $('rr-col-status').value=guess(rrHdrs,['status','statut','etat','état','state']);
+  ['rr-col-total','rr-col-qty','rr-col-sku'].forEach(id=>{$(id).innerHTML=none+opts;});
   $('rr-col-total').value=guess(rrHdrs,TKW);
   $('rr-col-qty').value=guess(rrHdrs,QKW);
   $('rr-col-sku').value=guess(rrHdrs,SKW);
-  $('rr-col-cost').value=guess(rrHdrs,['cost','cpl','spend','depense']);
-  autoDetectStatuses();
+  $('rr-curr-tag').textContent=getC().curr;
+  // SKU list
   rrBuildSKUList();
+  $('rr-col-sku').addEventListener('change',rrBuildSKUList);
   $('rr-mapper').classList.remove('hidden');
   rrRenderPreview(rrRows.slice(0,5));
 }
 
-function autoDetectStatuses(){
-  const sc=$('rr-col-status').value;if(!sc)return;
-  const vals=[...new Set(rrRows.map(r=>String(r[sc]||'').trim().toLowerCase()).filter(Boolean))];
-  const matchKw=(list)=>vals.filter(v=>list.some(k=>v.includes(k))).join(', ');
-  $('rr-s-delivered').value=matchKw(['livré','delivered','livre','success','completed','done','réussi']);
-  $('rr-s-confirmed').value=matchKw(['confirmé','confirmed','confirme','en attente','en cours','pending','processing']);
-  $('rr-s-returned').value=matchKw(['retourné','returned','non livré','not delivered','failed','échec']);
-  $('rr-s-cancelled').value=matchKw(['annulé','cancelled','canceled','refusé','refused']);
-}
-
 function rrBuildSKUList(){
-  const sc=$('rr-col-sku').value,sel=$('rr-sku-select');
-  if(!sc){sel.innerHTML='<option value="">All SKUs</option>';return;}
+  const sc=$('rr-col-sku').value,sel=$('rr-sku-select'),row=$('rr-sku-filter-row');
+  if(!sc){sel.innerHTML='<option value="">All SKUs</option>';row.classList.add('hidden');return;}
   const vals=[...new Set(rrRows.map(r=>String(r[sc]||'').trim()).filter(Boolean))].sort();
   sel.innerHTML='<option value="">All SKUs ('+rrRows.length+')</option>'+vals.map(v=>`<option value="${v}">${v}</option>`).join('');
+  row.classList.remove('hidden');
 }
-$('rr-col-sku').addEventListener('change',rrBuildSKUList);
-function rrResetSKU(){$('rr-sku-select').value='';}
 
 function rrRenderPreview(rows){
   const h=rrHdrs.slice(0,9);
@@ -1212,135 +1228,149 @@ function rrRenderPreview(rows){
   $('rr-preview-table').innerHTML=t;$('rr-preview-section').classList.remove('hidden');
 }
 
-function parseTags(str){return str.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);}
-
-function runRealAnalysis(){
-  const sc=$('rr-col-status').value;
-  if(!sc){al('rr-upload-status','Please select a status column.','warn');return;}
-  const tc=$('rr-col-total').value,qc=$('rr-col-qty').value,skuC=$('rr-col-sku').value,costC=$('rr-col-cost').value;
-  const tagsDel=parseTags($('rr-s-delivered').value);
-  const tagsConf=parseTags($('rr-s-confirmed').value);
-  const tagsRet=parseTags($('rr-s-returned').value);
-  const tagsCan=parseTags($('rr-s-cancelled').value);
-  const cpl=parseFloat($('rr-cpl').value)||0;
-  const cogsEur=parseFloat($('rr-cogs').value)||0;
-  const eu=parseFloat($('eurUsd').value)||FEUR;
-  const l2e=parseFloat($('localToEur').value)||getC().fallback;
-  const cogsUSD=cogsEur*eu;
+function rrExtractAOV(){
+  const tc=$('rr-col-total').value;
+  if(!tc){al('rr-upload-status','Please select the Order Total column.','warn');return;}
+  const qc=$('rr-col-qty').value,skuC=$('rr-col-sku').value;
   const selectedSKU=$('rr-sku-select').value;
-  const c=getC();
-
   let rows=rrRows;
   if(selectedSKU&&skuC)rows=rows.filter(r=>String(r[skuC]||'').trim()===selectedSKU);
-
-  const classify=v=>{
-    const s=String(v||'').trim().toLowerCase();
-    if(tagsDel.some(t=>s.includes(t)))return'delivered';
-    if(tagsRet.some(t=>s.includes(t)))return'returned';
-    if(tagsConf.some(t=>s.includes(t)))return'confirmed';
-    if(tagsCan.some(t=>s.includes(t)))return'cancelled';
-    return'unknown';
-  };
-
-  let counts={delivered:0,confirmed:0,returned:0,cancelled:0,unknown:0};
-  let deliveredLocal=0,deliveredQty=0,totalCostCol=0;
-  const unknownStatuses=new Set();
-
+  let totalSum=0,qtySum=0,cnt=0;
   rows.forEach(r=>{
-    const cls=classify(r[sc]);
-    counts[cls]++;
-    const t=tc?pn(r[tc]):NaN,q=qc?pn(r[qc]):NaN,co=costC?pn(r[costC]):NaN;
-    if(cls==='delivered'){
-      if(!isNaN(t)&&t>0)deliveredLocal+=t;
-      deliveredQty+=(!isNaN(q)&&q>0)?q:1;
-    }
-    if(!isNaN(co)&&co>0)totalCostCol+=co;
-    if(cls==='unknown')unknownStatuses.add(String(r[sc]||'').trim());
+    const t=pn(r[tc]);if(isNaN(t)||t<=0)return;
+    const q=qc?pn(r[qc]):NaN;
+    totalSum+=t;qtySum+=(!isNaN(q)&&q>0)?q:1;cnt++;
   });
+  if(!cnt){al('rr-upload-status','No valid order totals found in that column.','error');return;}
+  const aov=totalSum/cnt,aoq=qtySum/cnt;
+  const c=getC();
+  $('rr-aov').value=Math.round(aov);
+  $('rr-aoq').value=aoq.toFixed(2);
+  $('rr-aov-tag').textContent=c.curr;
+  $('rr-cogs').value=$('productCost').value;
+  // Show extracted pills
+  $('rr-extracted-pills').innerHTML=[
+    {l:'📦 Orders',v:cnt.toLocaleString()},
+    {l:'💰 AOV',v:Math.round(aov).toLocaleString()+' '+c.curr},
+    {l:'🛒 AOQ',v:aoq.toFixed(2)+' units/order'},
+    {l:'📊 Total',v:Math.round(totalSum).toLocaleString()+' '+c.curr},
+  ].map(p=>`<div class="rpill">${p.l} <strong>${p.v}</strong></div>`).join('');
+  // Reveal wizard steps
+  ['wiz-step2','wiz-step3','wiz-step4','rr-results'].forEach(id=>{
+    if(id==='rr-results')$(id).classList.add('hidden');
+    else$(id).classList.remove('hidden');
+  });
+  al('rr-upload-status','✅ Extracted from '+cnt.toLocaleString()+' orders'+(selectedSKU?' · SKU: '+selectedSKU:''),'info');
+  $('wiz-step2').scrollIntoView({behavior:'smooth',block:'start'});
+  setTimeout(rrLiveCalc,100);
+}
 
-  const total=rows.length;
-  const realDelivered=counts.delivered;
-  const realConfirmed=counts.confirmed+counts.delivered;
-  const realReturned=counts.returned;
-  const realCR=total>0?realConfirmed/total:0;
-  const realDR=realConfirmed>0?realDelivered/realConfirmed:0;
-  const realAOVLocal=realDelivered>0?deliveredLocal/realDelivered:0;
-  const realAOVUSD=realAOVLocal*l2e*eu;
-  const realAOQ=realDelivered>0?deliveredQty/realDelivered:1;
+// Add spend row
+function rrAddSpend(){
+  const wrap=$('rr-spend-rows');
+  const div=document.createElement('div');
+  div.className='rr-spend-row';
+  div.style.cssText='display:grid;grid-template-columns:1fr 160px 36px;gap:.5rem;align-items:end;margin-top:.5rem';
+  div.innerHTML=`<div class="field"><input type="text" placeholder="Campaign / Period…" style="padding:7px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:13px;width:100%;outline:none"></div><div class="field"><input type="number" placeholder="0" step="1" min="0" class="rr-spend-amt" oninput="rrLiveCalc()" style="padding:7px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:13px;width:100%;outline:none"></div><div><button onclick="this.closest('.rr-spend-row').remove();rrLiveCalc()" class="btn" style="width:36px;height:34px;padding:0;justify-content:center;font-size:16px;background:var(--red-l);color:var(--red);border:1px solid var(--red)">✕</button></div>`;
+  wrap.appendChild(div);
+}
 
-  // P&L
-  const revenue=realDelivered*realAOVUSD*(1-COD);
-  const codFees=realDelivered*realAOVUSD*COD;
-  const adSpend=costC&&totalCostCol>0?totalCostCol:total*cpl;
-  const confFees=realConfirmed*(CC_CONF*eu);
-  const delFees=realDelivered*((c.delivered+CC_DEL)*eu);
-  const retFees=realReturned*(c.returned*eu);
-  const cogsCost=realDelivered*realAOQ*cogsUSD;
-  const netProfit=revenue-adSpend-confFees-delFees-retFees-cogsCost;
+function rrTotalSpend(){
+  return [...document.querySelectorAll('.rr-spend-amt')].reduce((s,el)=>s+(parseFloat(el.value)||0),0);
+}
 
-  // Funnel
-  $('rr-funnel-title').textContent='Lead Funnel'+(selectedSKU?' · '+selectedSKU:'')+'  ('+total.toLocaleString()+' total leads)';
-  $('rr-funnel').innerHTML=[
-    {l:'Total Leads',v:total,sub:'100%',col:'var(--text)'},
-    {l:'Confirmed',v:realConfirmed,sub:pct(realCR*100)+' of leads',col:'var(--amber)'},
-    {l:'Delivered',v:realDelivered,sub:pct(realDR*100)+' of conf.',col:'var(--green)'},
-    {l:'Returned',v:realReturned,sub:total>0?pct(realReturned/total*100):'—',col:'var(--red)'},
-    {l:'Cancelled',v:counts.cancelled,sub:total>0?pct(counts.cancelled/total*100):'—',col:'var(--text3)'},
-    {l:'Unknown',v:counts.unknown,sub:'not mapped',col:'var(--text3)'},
-  ].map(s=>`<div class="funnel-step"><div class="funnel-step-lbl">${s.l}</div><div class="funnel-step-val" style="color:${s.col}">${s.v.toLocaleString()}</div><div class="funnel-step-pct">${s.sub}</div></div>`).join('');
+function rrLiveCalc(){
+  const totalSpend=rrTotalSpend();
+  $('rr-total-spend').textContent=usd(totalSpend,0);
 
-  // Unknown warning
-  $('rr-unknown-row').innerHTML=counts.unknown>0?`<div class="alert warn">⚠ ${counts.unknown} leads unmapped: <strong>${[...unknownStatuses].slice(0,6).join(', ')}</strong> — add them above &amp; re-run.</div>`:'';
+  const aovLocal=parseFloat($('rr-aov').value)||0;
+  if(!aovLocal)return;
+
+  const aoq=parseFloat($('rr-aoq').value)||1;
+  const cogsEur=parseFloat($('rr-cogs').value)||0;
+  const cr=(parseFloat($('rr-cr').value)||0)/100;
+  const dr=(parseFloat($('rr-dr').value)||0)/100;
+  const eu=parseFloat($('eurUsd').value)||FEUR;
+  const l2e=parseFloat($('localToEur').value)||getC().fallback;
+  const c=getC();
+
+  const aovUSD=aovLocal*l2e*eu;
+  const cogsUSD=cogsEur*eu;
+  const cfU=CC_CONF*eu,dlU=c.delivered*eu,cdU=CC_DEL*eu,retU=c.returned*eu,tdU=dlU+cdU;
+
+  // Leads = spend / CPL (use main calc CPL, or fallback $0 = manual)
+  const cpl=parseFloat($('cpl').value)||0;
+  const leads=cpl>0?totalSpend/cpl:0;
+  const confirmed=leads*cr,delivered=leads*cr*dr,returned=confirmed-delivered;
+
+  // Revenue & costs
+  const revenue=delivered*aovUSD*(1-COD);
+  const codFees=delivered*aovUSD*COD;
+  const confFees=confirmed*cfU;
+  const delFees=delivered*tdU;
+  const retFees=returned*retU;
+  const cogsCost=delivered*aoq*cogsUSD;
+  const net=revenue-totalSpend-confFees-delFees-retFees-cogsCost;
+
+  // Funnel chips
+  $('rr-funnel-chips').innerHTML=[
+    {l:'Leads',v:fn(leads),c:'var(--text)'},
+    {l:'Confirmed',v:fn(confirmed),c:'var(--amber)'},
+    {l:'Delivered',v:fn(delivered),c:'var(--green)'},
+    {l:'Returned',v:fn(returned),c:'var(--red)'},
+    {l:'Real CR',v:pct(cr*100),c:'var(--text)'},
+    {l:'Real DR',v:pct(dr*100),c:'var(--text)'},
+  ].map(s=>`<div class="chip"><div class="clbl">${s.l}</div><div class="cval" style="color:${s.c};font-size:16px">${s.v}</div></div>`).join('');
 
   // Big stats
-  const pc2=netProfit>=0?'green':'loss';
+  const profCls=net>=0?'green':'loss';
   $('rr-big-stats').innerHTML=[
-    {l:'Real AOV',v:realAOVLocal>0?Math.round(realAOVLocal).toLocaleString()+' '+c.curr:'—',sub:realAOVLocal>0?usd(realAOVUSD)+' USD':'No delivered orders',c:''},
-    {l:'Real AOQ',v:realAOQ.toFixed(2),sub:'units per delivered order',c:''},
-    {l:'Conf. Rate',v:pct(realCR*100),sub:realConfirmed+' / '+total+' leads',c:''},
-    {l:'Delivery Rate',v:pct(realDR*100),sub:realDelivered+' / '+realConfirmed+' confirmed',c:''},
-    {l:'Net Profit',v:(netProfit>=0?'+':'')+usd(netProfit,0),sub:total.toLocaleString()+' real leads',c:pc2},
+    {l:'AOV (USD)',v:usd(aovUSD),sub:Math.round(aovLocal).toLocaleString()+' '+c.curr,c:''},
+    {l:'AOQ',v:aoq.toFixed(2),sub:'units per order',c:''},
+    {l:'Total spend',v:usd(totalSpend,0),sub:'Meta ads',c:''},
+    {l:'Net profit (est.)',v:(net>=0?'+':'')+usd(net,0),sub:leads>0?fn(leads)+' leads':'Enter CPL in main calc',c:profCls},
   ].map(s=>`<div class="big-stat ${s.c}"><div class="big-stat-label">${s.l}</div><div class="big-stat-val">${s.v}</div><div class="big-stat-sub">${s.sub}</div></div>`).join('');
 
-  // Real P&L rows
+  // P&L
   $('rr-pl-rows').innerHTML=[
-    ['Gross revenue',revenue],
-    ['COD fees (5%)',-codFees],
-    ['Ad spend ('+(costC&&totalCostCol>0?'from column':'CPL × leads')+')',-adSpend],
-    ['Confirmation fees (CC)',-confFees],
-    ['Delivery fees (logistics+CC)',-delFees],
-    ['Return fees',-retFees],
-    ['Product COGS',-cogsCost],
+    ['Gross revenue',revenue],['COD fees (5%)',-codFees],
+    ['Meta ads spend',-totalSpend],['Confirmation fees (CC)',-confFees],
+    ['Delivery (logistics+CC)',-delFees],['Return fees',-retFees],['Product COGS',-cogsCost],
   ].map(([l,v])=>`<div class="rr-plr"><span>${l}</span><span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${usd(v,0)}</span></div>`).join('')
-  +`<div class="rr-plr tot"><span>Net profit</span><span class="${netProfit>=0?'pos':'neg'}">${netProfit>=0?'+':''}${usd(netProfit,0)}</span></div>`;
-
-  // Compare vs projector
-  const projV=getVars();
-  const cmp=(l,real,proj,fmt,hib=true)=>{
-    const d=real-proj,better=hib?d>=0:d<=0;
-    return`<div class="compare-row"><span>${l}</span><div style="display:flex;gap:.5rem;align-items:center"><strong>${fmt(real)}</strong><span style="color:var(--text3);font-size:11px">proj: ${fmt(proj)}</span><span style="font-size:11px;font-weight:700;color:${better?'var(--green)':'var(--red)'}">${d>=0?'▲':'▼'}${fmt(Math.abs(d))}</span></div></div>`;
-  };
-  $('rr-compare').innerHTML=
-    cmp('Conf. rate',realCR*100,projV.cr*100,n=>n.toFixed(1)+'%')
-    +cmp('Delivery rate',realDR*100,projV.dr*100,n=>n.toFixed(1)+'%')
-    +cmp('AOV (local)',realAOVLocal,projV.aovL,n=>Math.round(n).toLocaleString()+' '+c.curr)
-    +cmp('AOQ',realAOQ,projV.aoq,n=>n.toFixed(2))
-    +cmp('Profit / lead',total>0?netProfit/total:0,ppl(projV),n=>usd(n));
+  +`<div class="rr-plr tot"><span>Net profit (est.)</span><span class="${net>=0?'pos':'neg'}">${net>=0?'+':''}${usd(net,0)}</span></div>`;
 
   // Per lead
-  const rl=total?revenue/total:0,cl=total?(revenue-netProfit)/total:0,mg=revenue?(netProfit/revenue)*100:0;
+  const rl=leads?revenue/leads:0,cl=leads?(revenue-net)/leads:0,mg=revenue?(net/revenue)*100:0;
   $('rr-per-lead').innerHTML=[
-    {l:'Revenue / lead',v:usd(rl),c:''},
-    {l:'Cost / lead',v:usd(cl),c:''},
-    {l:'Profit / lead',v:(total?netProfit/total:0)>=0?'+'+usd(netProfit/total):usd(netProfit/total),c:(total?netProfit/total:0)>=0?'pos':'neg'},
+    {l:'Revenue / lead',v:usd(rl)},{l:'Cost / lead',v:usd(cl)},
+    {l:'Profit / lead',v:(leads?net/leads:0)>=0?'+'+usd(net/leads):usd(net/leads),c:(leads?net/leads:0)>=0?'pos':'neg'},
     {l:'Profit margin',v:pct(mg),c:mg>=0?'pos':'neg'},
-    {l:'Real ROAS',v:adSpend>0?(revenue/adSpend).toFixed(2)+'x':'—',c:''},
-    {l:'Profit / delivered',v:realDelivered?usd(netProfit/realDelivered):'—',c:netProfit>=0?'pos':'neg'},
-  ].map(s=>`<div class="chip"><div class="clbl">${s.l}</div><div class="cval ${s.c}">${s.v}</div></div>`).join('');
+  ].map(s=>`<div class="chip"><div class="clbl">${s.l}</div><div class="cval ${s.c||''}" style="font-size:15px">${s.v}</div></div>`).join('');
+
+  // Scale projections (per day using period spend)
+  const netPerDay=net/7; // assume week default; refine if needed
+  $('rr-scale-day').textContent=(netPerDay>=0?'+':'')+usd(netPerDay,0);
+  $('rr-scale-week').textContent=(net>=0?'+':'')+usd(net,0);
+  $('rr-scale-month').textContent=((net*30/7)>=0?'+':'')+usd(net*30/7,0);
+
+  // What if scenarios
+  const scenarios=[
+    {l:'If CR = '+(Math.min(cr*100+10,100)).toFixed(0)+'%',cr:Math.min(cr+0.10,1),dr},
+    {l:'If DR = '+(Math.min(dr*100+10,100)).toFixed(0)+'%',cr,dr:Math.min(dr+0.10,1)},
+    {l:'If spend = '+usd(totalSpend*2,0),spend:totalSpend*2,cr,dr},
+    {l:'If AOV +20%',aovMult:1.2,cr,dr},
+  ];
+  $('rr-whatif').innerHTML=scenarios.map(sc=>{
+    const scAOV=aovUSD*(sc.aovMult||1);
+    const scSpend=sc.spend||totalSpend;
+    const scLeads=cpl>0?scSpend/cpl:leads;
+    const scDel=scLeads*(sc.cr||cr)*(sc.dr||dr);
+    const scNet=scDel*scAOV*(1-COD)-scSpend-scLeads*(sc.cr||cr)*cfU-scDel*tdU-scLeads*(sc.cr||cr)*(1-(sc.dr||dr))*retU-scDel*aoq*cogsUSD;
+    const diff=scNet-net;
+    return`<div class="chip"><div class="clbl">${sc.l}</div><div class="cval" style="font-size:15px;color:${scNet>=0?'var(--green)':'var(--red)'}">${scNet>=0?'+':''}${usd(scNet,0)}</div><div style="font-size:11px;color:${diff>=0?'var(--green)':'var(--red)'}">${diff>=0?'▲+':'▼'}${usd(Math.abs(diff),0)}</div></div>`;
+  }).join('');
 
   $('rr-results').classList.remove('hidden');
-  $('rr-results').scrollIntoView({behavior:'smooth',block:'start'});
-  al('rr-upload-status','✅ Analysis done — '+total.toLocaleString()+' leads processed'+(selectedSKU?' · SKU: '+selectedSKU:''),'info');
 }
 </script>
 </body>
