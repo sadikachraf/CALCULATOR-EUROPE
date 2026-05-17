@@ -588,163 +588,182 @@ input:focus,select:focus{border-color:var(--green)}
 <div id="page-real" class="page">
 <main>
 
-  <div class="sdiv"><span class="sdivc">📊 Campaign Estimator — from your orders sheet</span><span class="sdivl"></span></div>
-  <p style="font-size:13px;color:var(--text2);margin-bottom:1.25rem">Upload your Google Sheets / Excel orders export → we extract AOV &amp; AOQ automatically → you fill in your Meta spend, confirmation &amp; delivery rate → get the full estimation.</p>
+  <div class="sdiv"><span class="sdivc">📊 Campaign Estimator</span><span class="sdivl"></span></div>
 
-  <!-- STEP 1: Upload -->
-  <div class="card" id="wiz-step1">
-    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.875rem">
-      <span style="width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</span>
-      <div class="sh" style="margin-bottom:0">Upload your orders sheet</div>
-    </div>
-    <div class="uzone" id="rr-uzone">
-      <div style="font-size:1.75rem;margin-bottom:.5rem">📋</div>
-      <div style="font-size:14px;font-weight:600;margin-bottom:3px">Drop your Google Sheets export here</div>
-      <div style="font-size:12px;color:var(--text2)">.csv · .xlsx · .xls — one row per order</div>
-      <input type="file" id="rr-file-input" accept=".csv,.xlsx,.xls">
-    </div>
-    <div id="rr-upload-status"></div>
+  <div class="g2" style="align-items:start">
 
-    <div id="rr-mapper" class="hidden">
-      <div class="divider"></div>
-      <p style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:.625rem">Map columns <span style="font-weight:400;color:var(--text3)">— auto-detected, adjust if needed</span></p>
-      <div class="cmap" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
-        <div class="field">
-          <div class="fl">Order Total <span class="tag" id="rr-curr-tag">local currency</span></div>
-          <select id="rr-col-total"><option value="">— select —</option></select>
-        </div>
-        <div class="field">
-          <div class="fl">Quantity <span class="tag">optional</span></div>
-          <select id="rr-col-qty"><option value="">— skip —</option></select>
-        </div>
-        <div class="field">
-          <div class="fl">SKU / Product <span class="tag">optional</span></div>
-          <select id="rr-col-sku"><option value="">— skip —</option></select>
-        </div>
-      </div>
-      <div id="rr-sku-filter-row" class="hidden" style="margin-top:.75rem;display:flex;align-items:flex-end;gap:.75rem;flex-wrap:wrap">
-        <div class="field" style="min-width:200px">
-          <div class="fl">🎯 Filter by SKU</div>
-          <select id="rr-sku-select"><option value="">All SKUs</option></select>
-        </div>
-        <button class="btn bo" onclick="$('rr-sku-select').value=''" style="height:34px">Clear</button>
-      </div>
-      <button class="btn bg" style="margin-top:.875rem" onclick="rrExtractAOV()">⚡ Extract AOV &amp; AOQ</button>
-    </div>
+    <!-- LEFT: Upload + inputs -->
+    <div style="display:flex;flex-direction:column;gap:1rem">
 
-    <div id="rr-preview-section" class="hidden">
-      <div class="divider"></div>
-      <p style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:.375rem">Preview — first 5 rows</p>
-      <div class="ptw"><table class="ptbl" id="rr-preview-table"></table></div>
-    </div>
-  </div>
-
-  <!-- STEP 2: AOV confirmed -->
-  <div class="card hidden" id="wiz-step2">
-    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.875rem">
-      <span style="width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</span>
-      <div class="sh" style="margin-bottom:0">Orders extracted ✅ — confirm values</div>
-    </div>
-    <div style="display:flex;gap:.625rem;flex-wrap:wrap;margin-bottom:1rem" id="rr-extracted-pills"></div>
-    <div class="ga" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
-      <div class="field">
-        <div class="fl">AOV <span class="tag" id="rr-aov-tag">local</span> <span class="tip" data-tip="Average order value extracted from your sheet. Edit if needed.">?</span></div>
-        <input type="number" id="rr-aov" value="0" step="1" min="0" oninput="rrLiveCalc()">
-      </div>
-      <div class="field">
-        <div class="fl">AOQ <span class="tag">units/order</span> <span class="tip" data-tip="Average quantity per order extracted from your sheet.">?</span></div>
-        <input type="number" id="rr-aoq" value="1" step="0.01" min="0.01" oninput="rrLiveCalc()">
-      </div>
-      <div class="field">
-        <div class="fl">Product Cost/Unit <span class="tag">EUR</span></div>
-        <input type="number" id="rr-cogs" value="5" step="0.01" min="0" oninput="rrLiveCalc()">
-      </div>
-    </div>
-  </div>
-
-  <!-- STEP 3: Meta Ads spend -->
-  <div class="card hidden" id="wiz-step3">
-    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.875rem">
-      <span style="width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</span>
-      <div class="sh" style="margin-bottom:0">Meta Ads spend</div>
-    </div>
-    <p style="font-size:12px;color:var(--text2);margin-bottom:.875rem">Enter your total spend across campaigns. Add up to 5 campaigns or periods — we'll sum them.</p>
-    <div id="rr-spend-rows" style="display:flex;flex-direction:column;gap:.5rem">
-      <div class="rr-spend-row" style="display:grid;grid-template-columns:1fr 160px 36px;gap:.5rem;align-items:end">
-        <div class="field"><div class="fl">Campaign / Period</div><input type="text" placeholder="e.g. Week 1, Campaign A…" style="padding:7px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:13px;width:100%;outline:none"></div>
-        <div class="field"><div class="fl">Spend <span class="tag">USD</span></div><input type="number" placeholder="0" step="1" min="0" class="rr-spend-amt" oninput="rrLiveCalc()" style="padding:7px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:13px;width:100%;outline:none"></div>
-        <div style="padding-bottom:1px"><button onclick="rrAddSpend()" class="btn bg" style="width:36px;height:34px;padding:0;justify-content:center;font-size:16px">+</button></div>
-      </div>
-    </div>
-    <div style="margin-top:.75rem;padding:.75rem 1rem;background:var(--surface2);border-radius:var(--rs);display:flex;justify-content:space-between;align-items:center">
-      <span style="font-size:12px;color:var(--text2)">Total Meta spend:</span>
-      <span style="font-size:18px;font-weight:700" id="rr-total-spend">$0</span>
-    </div>
-  </div>
-
-  <!-- STEP 4: Rates -->
-  <div class="card hidden" id="wiz-step4">
-    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.875rem">
-      <span style="width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">4</span>
-      <div class="sh" style="margin-bottom:0">Confirmation &amp; Delivery rates</div>
-    </div>
-    <p style="font-size:12px;color:var(--text2);margin-bottom:.875rem">Enter your rates — or test different scenarios by adjusting sliders.</p>
-    <div class="g2" style="gap:1.25rem">
-      <div>
-        <div class="fl" style="margin-bottom:.5rem">Confirmation Rate <span class="tag">%</span> <span class="tip" data-tip="% of leads that confirm their order with the call center.">?</span></div>
-        <div style="display:flex;align-items:center;gap:.75rem">
-          <input type="range" id="rr-cr-range" min="0" max="100" value="65" style="flex:1;accent-color:var(--green)" oninput="$('rr-cr').value=this.value;rrLiveCalc()">
-          <input type="number" id="rr-cr" value="65" min="0" max="100" step="1" style="width:72px;padding:7px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:14px;font-weight:700;outline:none" oninput="$('rr-cr-range').value=this.value;rrLiveCalc()">
-          <span style="font-size:14px;font-weight:600;color:var(--text2)">%</span>
-        </div>
-      </div>
-      <div>
-        <div class="fl" style="margin-bottom:.5rem">Delivery Rate <span class="tag">%</span> <span class="tip" data-tip="% of confirmed orders successfully delivered. Test different values.">?</span></div>
-        <div style="display:flex;align-items:center;gap:.75rem">
-          <input type="range" id="rr-dr-range" min="0" max="100" value="65" style="flex:1;accent-color:var(--amber)" oninput="$('rr-dr').value=this.value;rrLiveCalc()">
-          <input type="number" id="rr-dr" value="65" min="0" max="100" step="1" style="width:72px;padding:7px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:14px;font-weight:700;outline:none" oninput="$('rr-dr-range').value=this.value;rrLiveCalc()">
-          <span style="font-size:14px;font-weight:600;color:var(--text2)">%</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- STEP 5: Results -->
-  <div id="rr-results" class="hidden">
-    <div class="sdiv" style="margin-top:1.5rem"><span class="sdivc">📈 Estimation Results</span><span class="sdivl"></span></div>
-
-    <!-- Funnel chips -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:1rem" id="rr-funnel-chips"></div>
-
-    <!-- Big numbers -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1rem" id="rr-big-stats"></div>
-
-    <!-- P&L + per lead -->
-    <div class="g2">
+      <!-- Upload card -->
       <div class="card">
-        <div class="sh">Estimated P&amp;L</div>
-        <div class="ss">Based on your sheet's AOV/AOQ · your Meta spend · your rates.</div>
-        <div id="rr-pl-rows"></div>
+        <p class="ctitle">① Upload orders sheet → extract AOV &amp; AOQ</p>
+        <div class="uzone" id="rr-uzone">
+          <div style="font-size:1.5rem;margin-bottom:.375rem">📋</div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:2px">Drop Google Sheets / Excel export</div>
+          <div style="font-size:11px;color:var(--text2)">.csv · .xlsx · .xls</div>
+          <input type="file" id="rr-file-input" accept=".csv,.xlsx,.xls">
+        </div>
+        <div id="rr-upload-status"></div>
+
+        <!-- Column mapping — shown after upload -->
+        <div id="rr-mapper" class="hidden">
+          <div class="divider"></div>
+          <div class="cmap" style="grid-template-columns:1fr 1fr;gap:.625rem">
+            <div class="field">
+              <div class="fl">Order Total <span class="tag" id="rr-curr-tag">local</span></div>
+              <select id="rr-col-total"><option value="">— select —</option></select>
+            </div>
+            <div class="field">
+              <div class="fl">Quantity <span class="tag">optional</span></div>
+              <select id="rr-col-qty"><option value="">— skip —</option></select>
+            </div>
+            <div class="field">
+              <div class="fl">SKU / Product <span class="tag">optional</span></div>
+              <select id="rr-col-sku"><option value="">— skip —</option></select>
+            </div>
+            <div class="field" id="rr-sku-filter-field" style="display:none">
+              <div class="fl">Filter by SKU</div>
+              <select id="rr-sku-select"><option value="">All SKUs</option></select>
+            </div>
+          </div>
+          <button class="btn bg" style="margin-top:.75rem;width:100%" onclick="rrExtractAOV()">⚡ Extract AOV &amp; AOQ from sheet</button>
+        </div>
+
+        <!-- Preview -->
+        <div id="rr-preview-section" class="hidden">
+          <div class="divider"></div>
+          <p style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:.375rem" id="rr-preview-lbl">Preview — first 5 rows</p>
+          <div class="ptw"><table class="ptbl" id="rr-preview-table"></table></div>
+        </div>
       </div>
+
+      <!-- Inputs card — always visible -->
       <div class="card">
-        <div class="sh">Per-lead economics</div>
-        <div class="ss">Every metric broken down per lead generated.</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.875rem" id="rr-per-lead"></div>
-        <div style="background:var(--surface2);border-radius:var(--rs);padding:.75rem 1rem">
-          <p style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem">Projected at this scale</p>
-          <div style="display:flex;gap:1rem;flex-wrap:wrap;font-size:12px;color:var(--text2)">
-            Daily: <strong id="rr-scale-day" style="color:var(--text)">—</strong>
-            Weekly: <strong id="rr-scale-week" style="color:var(--text)">—</strong>
-            Monthly: <strong id="rr-scale-month" style="color:var(--text)">—</strong>
+        <p class="ctitle">② Fill in your numbers</p>
+
+        <p style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.04em">AOV &amp; AOQ</p>
+        <div class="g2" style="gap:.625rem;margin-bottom:1rem">
+          <div class="field">
+            <div class="fl">AOV <span class="tag" id="rr-aov-tag">local</span></div>
+            <input type="number" id="rr-aov" value="" placeholder="from sheet or type manually" step="1" min="0" oninput="rrLiveCalc()">
+          </div>
+          <div class="field">
+            <div class="fl">AOQ <span class="tag">units/order</span></div>
+            <input type="number" id="rr-aoq" value="1" step="0.01" min="0.01" oninput="rrLiveCalc()">
+          </div>
+        </div>
+
+        <p style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.04em">Product cost</p>
+        <div class="field" style="margin-bottom:1rem">
+          <div class="fl">Product Cost / Unit <span class="tag">EUR</span></div>
+          <input type="number" id="rr-cogs" value="5" step="0.01" min="0" oninput="rrLiveCalc()">
+        </div>
+
+        <p style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.04em">Meta Ads spend <span style="font-weight:400;color:var(--text3);text-transform:none;letter-spacing:0">— add by campaign or period</span></p>
+        <div id="rr-spend-rows" style="display:flex;flex-direction:column;gap:.5rem"></div>
+        <button class="btn bo" onclick="rrAddSpend()" style="margin-top:.5rem;width:100%;justify-content:center">+ Add campaign / period</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.625rem;padding:.625rem .875rem;background:var(--surface2);border-radius:var(--rs)">
+          <span style="font-size:12px;color:var(--text2)">Total Meta spend:</span>
+          <span style="font-size:17px;font-weight:700" id="rr-total-spend">$0</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <p style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:.875rem;text-transform:uppercase;letter-spacing:.04em">Rates — drag to test scenarios</p>
+        <div style="display:flex;flex-direction:column;gap:.875rem">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.375rem">
+              <span style="font-size:12px;color:var(--text2)">Confirmation Rate</span>
+              <div style="display:flex;align-items:center;gap:.375rem">
+                <input type="number" id="rr-cr" value="65" min="0" max="100" step="1" style="width:56px;padding:5px 7px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:13px;font-weight:700;text-align:center;outline:none" oninput="$('rr-cr-range').value=this.value;rrLiveCalc()">
+                <span style="font-size:13px;font-weight:600;color:var(--text2)">%</span>
+              </div>
+            </div>
+            <input type="range" id="rr-cr-range" min="0" max="100" value="65" style="width:100%;accent-color:var(--green)" oninput="$('rr-cr').value=this.value;rrLiveCalc()">
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.375rem">
+              <span style="font-size:12px;color:var(--text2)">Delivery Rate</span>
+              <div style="display:flex;align-items:center;gap:.375rem">
+                <input type="number" id="rr-dr" value="65" min="0" max="100" step="1" style="width:56px;padding:5px 7px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:13px;font-weight:700;text-align:center;outline:none" oninput="$('rr-dr-range').value=this.value;rrLiveCalc()">
+                <span style="font-size:13px;font-weight:600;color:var(--text2)">%</span>
+              </div>
+            </div>
+            <input type="range" id="rr-dr-range" min="0" max="100" value="65" style="width:100%;accent-color:var(--amber)" oninput="$('rr-dr').value=this.value;rrLiveCalc()">
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Scenario tester -->
-    <div class="card" style="margin-top:1rem;background:var(--blue-l);border-color:var(--blue)">
-      <p style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem">💡 What if?</p>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px" id="rr-whatif"></div>
+    <!-- RIGHT: Results — always visible, updates live -->
+    <div style="display:flex;flex-direction:column;gap:1rem">
+
+      <!-- Funnel -->
+      <div class="card">
+        <p class="ctitle">Lead funnel (estimated)</p>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:.75rem" id="rr-funnel-chips">
+          <div class="chip" style="text-align:center"><div class="clbl">Leads</div><div class="cval" id="rr-f-leads" style="font-size:16px">—</div></div>
+          <div class="chip" style="text-align:center"><div class="clbl">Confirmed</div><div class="cval" id="rr-f-conf" style="font-size:16px;color:var(--amber)">—</div></div>
+          <div class="chip" style="text-align:center"><div class="clbl">Delivered</div><div class="cval" id="rr-f-del" style="font-size:16px;color:var(--green)">—</div></div>
+          <div class="chip" style="text-align:center"><div class="clbl">Returned</div><div class="cval" id="rr-f-ret" style="font-size:16px;color:var(--red)">—</div></div>
+          <div class="chip" style="text-align:center"><div class="clbl">CR</div><div class="cval" id="rr-f-cr" style="font-size:16px">—</div></div>
+          <div class="chip" style="text-align:center"><div class="clbl">DR</div><div class="cval" id="rr-f-dr" style="font-size:16px">—</div></div>
+        </div>
+      </div>
+
+      <!-- Net profit big card -->
+      <div class="big-stat green" id="rr-profit-card">
+        <div class="big-stat-label">Estimated net profit (USD)</div>
+        <div class="big-stat-val" id="rr-net-profit">—</div>
+        <div class="big-stat-sub" id="rr-net-sub">Enter your numbers on the left</div>
+      </div>
+
+      <!-- P&L -->
+      <div class="card">
+        <p class="ctitle">Estimated P&amp;L · USD</p>
+        <div id="rr-pl-rows">
+          <div class="rr-plr"><span>Gross revenue</span><span id="pl-rev2">—</span></div>
+          <div class="rr-plr"><span>COD fees (5%)</span><span id="pl-cod2">—</span></div>
+          <div class="rr-plr"><span>Meta ads spend</span><span id="pl-ads2">—</span></div>
+          <div class="rr-plr"><span>Confirmation fees (CC)</span><span id="pl-cf2">—</span></div>
+          <div class="rr-plr"><span>Delivery (logistics + CC)</span><span id="pl-df2">—</span></div>
+          <div class="rr-plr"><span>Return fees</span><span id="pl-rf2">—</span></div>
+          <div class="rr-plr"><span>Product COGS</span><span id="pl-cg2">—</span></div>
+          <div class="rr-plr tot"><span>Net profit</span><span id="pl-net2">—</span></div>
+        </div>
+      </div>
+
+      <!-- Per lead + scale -->
+      <div class="card">
+        <p class="ctitle">Per-lead economics</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.875rem">
+          <div class="chip"><div class="clbl">Revenue / lead</div><div class="cval" id="pl-rl" style="font-size:15px">—</div></div>
+          <div class="chip"><div class="clbl">Cost / lead</div><div class="cval" id="pl-cl" style="font-size:15px">—</div></div>
+          <div class="chip"><div class="clbl">Profit / lead</div><div class="cval pos" id="pl-prl" style="font-size:15px">—</div></div>
+          <div class="chip"><div class="clbl">Profit margin</div><div class="cval" id="pl-mg" style="font-size:15px">—</div></div>
+        </div>
+        <div style="background:var(--surface2);border-radius:var(--rs);padding:.75rem 1rem">
+          <p style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem">Projected at this scale</p>
+          <div style="display:flex;flex-wrap:wrap;gap:.625rem 1.25rem;font-size:12px">
+            <span style="color:var(--text2)">Daily: <strong id="rr-scale-day" style="color:var(--text)">—</strong></span>
+            <span style="color:var(--text2)">Weekly: <strong id="rr-scale-week" style="color:var(--text)">—</strong></span>
+            <span style="color:var(--text2)">Monthly: <strong id="rr-scale-month" style="color:var(--text)">—</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- What if -->
+      <div class="card" style="background:var(--blue-l);border-color:var(--blue)">
+        <p style="font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.625rem">💡 What if scenarios</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="rr-whatif">
+          <div class="chip"><div class="clbl">CR +10%</div><div class="cval" id="wi-cr" style="font-size:15px">—</div></div>
+          <div class="chip"><div class="clbl">DR +10%</div><div class="cval" id="wi-dr" style="font-size:15px">—</div></div>
+          <div class="chip"><div class="clbl">Spend ×2</div><div class="cval" id="wi-spend" style="font-size:15px">—</div></div>
+          <div class="chip"><div class="clbl">AOV +20%</div><div class="cval" id="wi-aov" style="font-size:15px">—</div></div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -1180,8 +1199,25 @@ function switchTab(name){
   if(name==='real') $('rr-cogs').value=$('productCost').value;
 }
 
-/* ── REAL RESULTS WIZARD ── */
+/* ── REAL RESULTS ── */
 let rrRows=[],rrHdrs=[];
+
+function rrInitSpendRow(){
+  $('rr-spend-rows').innerHTML='';
+  rrAddSpend('Week 1','');
+}
+
+function rrAddSpend(label='',amount=''){
+  const wrap=$('rr-spend-rows');
+  const div=document.createElement('div');
+  div.style.cssText='display:grid;grid-template-columns:1fr 120px 32px;gap:.5rem;align-items:center;margin-bottom:.375rem';
+  div.innerHTML=`<input type="text" value="${label}" placeholder="Campaign / period…" style="padding:7px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:12px;width:100%;outline:none"><input type="number" value="${amount}" placeholder="$0" step="1" min="0" class="rr-spend-amt" oninput="rrLiveCalc()" style="padding:7px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:13px;font-weight:600;width:100%;outline:none"><button onclick="this.parentElement.remove();rrLiveCalc()" style="width:32px;height:32px;border-radius:var(--rs);border:1px solid var(--border2);background:var(--surface2);color:var(--text3);cursor:pointer;font-size:13px">✕</button>`;
+  wrap.appendChild(div);
+}
+
+function rrTotalSpend(){
+  return [...document.querySelectorAll('.rr-spend-amt')].reduce((s,el)=>s+(parseFloat(el.value)||0),0);
+}
 
 const rrUz=$('rr-uzone');
 rrUz.addEventListener('click',()=>$('rr-file-input').click());
@@ -1199,84 +1235,53 @@ function rrHandleFile(file){
 }
 
 function rrSetup(fname){
-  al('rr-upload-status','✅ <strong>'+fname+'</strong> — '+rrRows.length.toLocaleString()+' rows. Select columns below.','info');
+  al('rr-upload-status','✅ <strong>'+fname+'</strong> — '+rrRows.length.toLocaleString()+' rows loaded.','info');
   const opts=rrHdrs.map(h=>`<option value="${h}">${h}</option>`).join(''),none='<option value="">— skip —</option>';
   ['rr-col-total','rr-col-qty','rr-col-sku'].forEach(id=>{$(id).innerHTML=none+opts;});
   $('rr-col-total').value=guess(rrHdrs,TKW);
   $('rr-col-qty').value=guess(rrHdrs,QKW);
   $('rr-col-sku').value=guess(rrHdrs,SKW);
   $('rr-curr-tag').textContent=getC().curr;
-  // SKU list
+  $('rr-col-sku').onchange=rrBuildSKUList;
   rrBuildSKUList();
-  $('rr-col-sku').addEventListener('change',rrBuildSKUList);
   $('rr-mapper').classList.remove('hidden');
   rrRenderPreview(rrRows.slice(0,5));
 }
 
 function rrBuildSKUList(){
-  const sc=$('rr-col-sku').value,sel=$('rr-sku-select'),row=$('rr-sku-filter-row');
-  if(!sc){sel.innerHTML='<option value="">All SKUs</option>';row.classList.add('hidden');return;}
+  const sc=$('rr-col-sku').value,sel=$('rr-sku-select'),field=$('rr-sku-filter-field');
+  if(!sc){sel.innerHTML='<option value="">All SKUs</option>';field.style.display='none';return;}
   const vals=[...new Set(rrRows.map(r=>String(r[sc]||'').trim()).filter(Boolean))].sort();
   sel.innerHTML='<option value="">All SKUs ('+rrRows.length+')</option>'+vals.map(v=>`<option value="${v}">${v}</option>`).join('');
-  row.classList.remove('hidden');
+  field.style.display='block';
+  sel.onchange=rrLiveCalc;
 }
 
 function rrRenderPreview(rows){
   const h=rrHdrs.slice(0,9);
   let t='<tr>'+h.map(x=>`<th>${x}</th>`).join('')+'</tr>';
   rows.forEach(r=>{t+='<tr>'+h.map(x=>`<td>${r[x]??''}</td>`).join('')+'</tr>';});
-  $('rr-preview-table').innerHTML=t;$('rr-preview-section').classList.remove('hidden');
+  $('rr-preview-table').innerHTML=t;
+  $('rr-preview-section').classList.remove('hidden');
 }
 
 function rrExtractAOV(){
   const tc=$('rr-col-total').value;
-  if(!tc){al('rr-upload-status','Please select the Order Total column.','warn');return;}
+  if(!tc){al('rr-upload-status','Please select the Order Total column first.','warn');return;}
   const qc=$('rr-col-qty').value,skuC=$('rr-col-sku').value;
   const selectedSKU=$('rr-sku-select').value;
-  let rows=rrRows;
-  if(selectedSKU&&skuC)rows=rows.filter(r=>String(r[skuC]||'').trim()===selectedSKU);
-  let totalSum=0,qtySum=0,cnt=0;
-  rows.forEach(r=>{
-    const t=pn(r[tc]);if(isNaN(t)||t<=0)return;
-    const q=qc?pn(r[qc]):NaN;
-    totalSum+=t;qtySum+=(!isNaN(q)&&q>0)?q:1;cnt++;
-  });
-  if(!cnt){al('rr-upload-status','No valid order totals found in that column.','error');return;}
-  const aov=totalSum/cnt,aoq=qtySum/cnt;
+  let filteredRows=rrRows;
+  if(selectedSKU&&skuC)filteredRows=filteredRows.filter(r=>String(r[skuC]||'').trim()===selectedSKU);
+  let ts=0,qs=0,cnt=0;
+  filteredRows.forEach(r=>{const t=pn(r[tc]);if(isNaN(t)||t<=0)return;const q=qc?pn(r[qc]):NaN;ts+=t;qs+=(!isNaN(q)&&q>0)?q:1;cnt++;});
+  if(!cnt){al('rr-upload-status','No valid order totals found. Check the column.','error');return;}
   const c=getC();
-  $('rr-aov').value=Math.round(aov);
-  $('rr-aoq').value=aoq.toFixed(2);
+  $('rr-aov').value=Math.round(ts/cnt);
+  $('rr-aoq').value=(qs/cnt).toFixed(2);
   $('rr-aov-tag').textContent=c.curr;
-  $('rr-cogs').value=$('productCost').value;
-  // Show extracted pills
-  $('rr-extracted-pills').innerHTML=[
-    {l:'📦 Orders',v:cnt.toLocaleString()},
-    {l:'💰 AOV',v:Math.round(aov).toLocaleString()+' '+c.curr},
-    {l:'🛒 AOQ',v:aoq.toFixed(2)+' units/order'},
-    {l:'📊 Total',v:Math.round(totalSum).toLocaleString()+' '+c.curr},
-  ].map(p=>`<div class="rpill">${p.l} <strong>${p.v}</strong></div>`).join('');
-  // Reveal wizard steps
-  ['wiz-step2','wiz-step3','wiz-step4','rr-results'].forEach(id=>{
-    if(id==='rr-results')$(id).classList.add('hidden');
-    else$(id).classList.remove('hidden');
-  });
-  al('rr-upload-status','✅ Extracted from '+cnt.toLocaleString()+' orders'+(selectedSKU?' · SKU: '+selectedSKU:''),'info');
-  $('wiz-step2').scrollIntoView({behavior:'smooth',block:'start'});
-  setTimeout(rrLiveCalc,100);
-}
-
-// Add spend row
-function rrAddSpend(){
-  const wrap=$('rr-spend-rows');
-  const div=document.createElement('div');
-  div.className='rr-spend-row';
-  div.style.cssText='display:grid;grid-template-columns:1fr 160px 36px;gap:.5rem;align-items:end;margin-top:.5rem';
-  div.innerHTML=`<div class="field"><input type="text" placeholder="Campaign / Period…" style="padding:7px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:13px;width:100%;outline:none"></div><div class="field"><input type="number" placeholder="0" step="1" min="0" class="rr-spend-amt" oninput="rrLiveCalc()" style="padding:7px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--surface2);color:var(--text);font-size:13px;width:100%;outline:none"></div><div><button onclick="this.closest('.rr-spend-row').remove();rrLiveCalc()" class="btn" style="width:36px;height:34px;padding:0;justify-content:center;font-size:16px;background:var(--red-l);color:var(--red);border:1px solid var(--red)">✕</button></div>`;
-  wrap.appendChild(div);
-}
-
-function rrTotalSpend(){
-  return [...document.querySelectorAll('.rr-spend-amt')].reduce((s,el)=>s+(parseFloat(el.value)||0),0);
+  al('rr-upload-status','✅ Extracted from '+cnt.toLocaleString()+' orders'+(selectedSKU?' · '+selectedSKU:'')
+    +' — AOV: '+Math.round(ts/cnt).toLocaleString()+' '+c.curr+', AOQ: '+(qs/cnt).toFixed(2),'info');
+  rrLiveCalc();
 }
 
 function rrLiveCalc(){
@@ -1284,8 +1289,6 @@ function rrLiveCalc(){
   $('rr-total-spend').textContent=usd(totalSpend,0);
 
   const aovLocal=parseFloat($('rr-aov').value)||0;
-  if(!aovLocal)return;
-
   const aoq=parseFloat($('rr-aoq').value)||1;
   const cogsEur=parseFloat($('rr-cogs').value)||0;
   const cr=(parseFloat($('rr-cr').value)||0)/100;
@@ -1293,17 +1296,29 @@ function rrLiveCalc(){
   const eu=parseFloat($('eurUsd').value)||FEUR;
   const l2e=parseFloat($('localToEur').value)||getC().fallback;
   const c=getC();
+  const cpl=parseFloat($('cpl').value)||0;
 
   const aovUSD=aovLocal*l2e*eu;
   const cogsUSD=cogsEur*eu;
   const cfU=CC_CONF*eu,dlU=c.delivered*eu,cdU=CC_DEL*eu,retU=c.returned*eu,tdU=dlU+cdU;
-
-  // Leads = spend / CPL (use main calc CPL, or fallback $0 = manual)
-  const cpl=parseFloat($('cpl').value)||0;
   const leads=cpl>0?totalSpend/cpl:0;
   const confirmed=leads*cr,delivered=leads*cr*dr,returned=confirmed-delivered;
 
-  // Revenue & costs
+  // Funnel
+  $('rr-f-leads').textContent=leads>0?fn(leads):'—';
+  $('rr-f-conf').textContent=leads>0?fn(confirmed):'—';
+  $('rr-f-del').textContent=leads>0?fn(delivered):'—';
+  $('rr-f-ret').textContent=leads>0?fn(returned):'—';
+  $('rr-f-cr').textContent=pct(cr*100);
+  $('rr-f-dr').textContent=pct(dr*100);
+
+  if(!aovLocal){
+    $('rr-net-profit').textContent='—';
+    $('rr-net-sub').textContent=rrRows.length?'Upload done — now click "Extract AOV & AOQ"':'Upload sheet OR type AOV manually on the left';
+    ['pl-rev2','pl-cod2','pl-ads2','pl-cf2','pl-df2','pl-rf2','pl-cg2','pl-net2'].forEach(id=>{if($(id))$(id).textContent='—';});
+    return;
+  }
+
   const revenue=delivered*aovUSD*(1-COD);
   const codFees=delivered*aovUSD*COD;
   const confFees=confirmed*cfU;
@@ -1312,66 +1327,39 @@ function rrLiveCalc(){
   const cogsCost=delivered*aoq*cogsUSD;
   const net=revenue-totalSpend-confFees-delFees-retFees-cogsCost;
 
-  // Funnel chips
-  $('rr-funnel-chips').innerHTML=[
-    {l:'Leads',v:fn(leads),c:'var(--text)'},
-    {l:'Confirmed',v:fn(confirmed),c:'var(--amber)'},
-    {l:'Delivered',v:fn(delivered),c:'var(--green)'},
-    {l:'Returned',v:fn(returned),c:'var(--red)'},
-    {l:'Real CR',v:pct(cr*100),c:'var(--text)'},
-    {l:'Real DR',v:pct(dr*100),c:'var(--text)'},
-  ].map(s=>`<div class="chip"><div class="clbl">${s.l}</div><div class="cval" style="color:${s.c};font-size:16px">${s.v}</div></div>`).join('');
-
-  // Big stats
-  const profCls=net>=0?'green':'loss';
-  $('rr-big-stats').innerHTML=[
-    {l:'AOV (USD)',v:usd(aovUSD),sub:Math.round(aovLocal).toLocaleString()+' '+c.curr,c:''},
-    {l:'AOQ',v:aoq.toFixed(2),sub:'units per order',c:''},
-    {l:'Total spend',v:usd(totalSpend,0),sub:'Meta ads',c:''},
-    {l:'Net profit (est.)',v:(net>=0?'+':'')+usd(net,0),sub:leads>0?fn(leads)+' leads':'Enter CPL in main calc',c:profCls},
-  ].map(s=>`<div class="big-stat ${s.c}"><div class="big-stat-label">${s.l}</div><div class="big-stat-val">${s.v}</div><div class="big-stat-sub">${s.sub}</div></div>`).join('');
+  $('rr-net-profit').textContent=(net>=0?'+':'')+usd(net,0);
+  $('rr-profit-card').className='big-stat '+(net>=0?'green':'loss');
+  $('rr-net-sub').textContent=leads>0?fn(leads)+' leads · '+fn(delivered)+' delivered':'Set CPL in Projector tab to see leads count';
 
   // P&L
-  $('rr-pl-rows').innerHTML=[
-    ['Gross revenue',revenue],['COD fees (5%)',-codFees],
-    ['Meta ads spend',-totalSpend],['Confirmation fees (CC)',-confFees],
-    ['Delivery (logistics+CC)',-delFees],['Return fees',-retFees],['Product COGS',-cogsCost],
-  ].map(([l,v])=>`<div class="rr-plr"><span>${l}</span><span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${usd(v,0)}</span></div>`).join('')
-  +`<div class="rr-plr tot"><span>Net profit (est.)</span><span class="${net>=0?'pos':'neg'}">${net>=0?'+':''}${usd(net,0)}</span></div>`;
+  const sv=(id,v)=>{if(!$(id))return;$(id).textContent=(v>=0?'':'-')+usd(Math.abs(v),0);$(id).className=v>=0?'pos':'neg';};
+  sv('pl-rev2',revenue);sv('pl-cod2',-codFees);sv('pl-ads2',-totalSpend);
+  sv('pl-cf2',-confFees);sv('pl-df2',-delFees);sv('pl-rf2',-retFees);sv('pl-cg2',-cogsCost);
+  if($('pl-net2')){$('pl-net2').textContent=(net>=0?'+':'')+usd(net,0);$('pl-net2').className=net>=0?'pos':'neg';}
 
   // Per lead
   const rl=leads?revenue/leads:0,cl=leads?(revenue-net)/leads:0,mg=revenue?(net/revenue)*100:0;
-  $('rr-per-lead').innerHTML=[
-    {l:'Revenue / lead',v:usd(rl)},{l:'Cost / lead',v:usd(cl)},
-    {l:'Profit / lead',v:(leads?net/leads:0)>=0?'+'+usd(net/leads):usd(net/leads),c:(leads?net/leads:0)>=0?'pos':'neg'},
-    {l:'Profit margin',v:pct(mg),c:mg>=0?'pos':'neg'},
-  ].map(s=>`<div class="chip"><div class="clbl">${s.l}</div><div class="cval ${s.c||''}" style="font-size:15px">${s.v}</div></div>`).join('');
+  if($('pl-rl'))$('pl-rl').textContent=usd(rl);
+  if($('pl-cl'))$('pl-cl').textContent=usd(cl);
+  if($('pl-prl')){$('pl-prl').textContent=(leads&&net/leads>=0?'+':'')+usd(leads?net/leads:0);$('pl-prl').className='cval '+(leads&&net/leads>=0?'pos':'neg');}
+  if($('pl-mg')){$('pl-mg').textContent=pct(mg);$('pl-mg').className='cval '+(mg>=0?'pos':'neg');}
 
-  // Scale projections (per day using period spend)
-  const netPerDay=net/7; // assume week default; refine if needed
-  $('rr-scale-day').textContent=(netPerDay>=0?'+':'')+usd(netPerDay,0);
-  $('rr-scale-week').textContent=(net>=0?'+':'')+usd(net,0);
-  $('rr-scale-month').textContent=((net*30/7)>=0?'+':'')+usd(net*30/7,0);
+  // Scale
+  const perDay=net/7;
+  if($('rr-scale-day'))$('rr-scale-day').textContent=(perDay>=0?'+':'')+usd(perDay,0);
+  if($('rr-scale-week'))$('rr-scale-week').textContent=(net>=0?'+':'')+usd(net,0);
+  if($('rr-scale-month'))$('rr-scale-month').textContent=((net*30/7)>=0?'+':'')+usd(net*30/7,0);
 
-  // What if scenarios
-  const scenarios=[
-    {l:'If CR = '+(Math.min(cr*100+10,100)).toFixed(0)+'%',cr:Math.min(cr+0.10,1),dr},
-    {l:'If DR = '+(Math.min(dr*100+10,100)).toFixed(0)+'%',cr,dr:Math.min(dr+0.10,1)},
-    {l:'If spend = '+usd(totalSpend*2,0),spend:totalSpend*2,cr,dr},
-    {l:'If AOV +20%',aovMult:1.2,cr,dr},
-  ];
-  $('rr-whatif').innerHTML=scenarios.map(sc=>{
-    const scAOV=aovUSD*(sc.aovMult||1);
-    const scSpend=sc.spend||totalSpend;
-    const scLeads=cpl>0?scSpend/cpl:leads;
-    const scDel=scLeads*(sc.cr||cr)*(sc.dr||dr);
-    const scNet=scDel*scAOV*(1-COD)-scSpend-scLeads*(sc.cr||cr)*cfU-scDel*tdU-scLeads*(sc.cr||cr)*(1-(sc.dr||dr))*retU-scDel*aoq*cogsUSD;
-    const diff=scNet-net;
-    return`<div class="chip"><div class="clbl">${sc.l}</div><div class="cval" style="font-size:15px;color:${scNet>=0?'var(--green)':'var(--red)'}">${scNet>=0?'+':''}${usd(scNet,0)}</div><div style="font-size:11px;color:${diff>=0?'var(--green)':'var(--red)'}">${diff>=0?'▲+':'▼'}${usd(Math.abs(diff),0)}</div></div>`;
-  }).join('');
-
-  $('rr-results').classList.remove('hidden');
+  // What if
+  const calcNet2=(aM,cR,dR,sp)=>{const l=cpl>0?sp/cpl:0;const d=l*cR*dR;return d*aovUSD*aM*(1-COD)-sp-l*cR*cfU-d*tdU-l*cR*(1-dR)*retU-d*aoq*cogsUSD;};
+  const wi=(id,aM,cR,dR,sp)=>{const n=calcNet2(aM,cR,dR,sp),diff=n-net;if(!$(id))return;$(id).textContent=(n>=0?'+':'')+usd(n,0);$(id).className='cval '+(n>=0?'pos':'neg');$(id).nextSibling&&($(id).nextSibling.textContent='');};
+  wi('wi-cr',1,Math.min(cr+.10,1),dr,totalSpend);
+  wi('wi-dr',1,cr,Math.min(dr+.10,1),totalSpend);
+  wi('wi-spend',1,cr,dr,totalSpend*2);
+  wi('wi-aov',1.2,cr,dr,totalSpend);
 }
+
+rrInitSpendRow();
 </script>
 </body>
 </html>
