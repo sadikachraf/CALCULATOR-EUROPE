@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>COD Profit Calculator — Europe</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230f6e56'/><text x='16' y='23' font-size='18' font-family='system-ui,sans-serif' font-weight='900' text-anchor='middle' fill='white'>€</text></svg>">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -258,7 +259,8 @@ input:focus,select:focus{border-color:var(--green)}
 <div class="tab-nav">
   <div class="tab-nav-inner">
     <button class="tab-btn active" onclick="switchTab('projector')">📊 Projector</button>
-    <button class="tab-btn" onclick="switchTab('real')">🔬 Real Results</button>
+    <button class="tab-btn" onclick="switchTab('real')">🔬 Campaign Estimator</button>
+    <button class="tab-btn" onclick="switchTab('audit')">📋 Orders Audit</button>
   </div>
 </div>
 
@@ -770,7 +772,166 @@ input:focus,select:focus{border-color:var(--green)}
 </main>
 </div><!-- end page-real -->
 
-<script>
+<!-- ══ ORDERS AUDIT PAGE ══ -->
+<div id="page-audit" class="page">
+<main>
+
+  <div class="sdiv"><span class="sdivc">📋 Orders Audit — Real P&L from your actual data</span><span class="sdivl"></span></div>
+
+  <!-- Upload -->
+  <div class="card" id="audit-upload-card">
+    <p class="ctitle">Upload your orders sheet — one row per order/lead</p>
+    <div class="uzone" id="audit-uzone" style="padding:1.5rem">
+      <div style="font-size:1.75rem;margin-bottom:.5rem">📊</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:3px">Drop your orders export here</div>
+      <div style="font-size:12px;color:var(--text2)">Google Sheets export · .csv · .xlsx · .xls</div>
+      <input type="file" id="audit-file" accept=".csv,.xlsx,.xls">
+    </div>
+    <div id="audit-upload-status"></div>
+
+    <!-- Column + status mapping -->
+    <div id="audit-mapper" class="hidden">
+      <div class="divider"></div>
+      <p style="font-size:13px;font-weight:600;margin-bottom:3px">Map your columns</p>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:.75rem">We auto-detect — verify and adjust if needed.</p>
+      <div class="cmap">
+        <div class="field">
+          <div class="fl">Status column <span class="tag" style="background:var(--green-l);color:var(--green-d);border-color:var(--green)">required</span></div>
+          <select id="audit-col-status"><option value="">— select —</option></select>
+        </div>
+        <div class="field">
+          <div class="fl">Order Total <span class="tag">local currency</span></div>
+          <select id="audit-col-total"><option value="">— skip —</option></select>
+        </div>
+        <div class="field">
+          <div class="fl">Quantity <span class="tag">optional</span></div>
+          <select id="audit-col-qty"><option value="">— skip —</option></select>
+        </div>
+        <div class="field">
+          <div class="fl">SKU / Product <span class="tag">optional</span></div>
+          <select id="audit-col-sku"><option value="">— skip —</option></select>
+        </div>
+        <div class="field">
+          <div class="fl">Date <span class="tag">optional</span></div>
+          <select id="audit-col-date"><option value="">— skip —</option></select>
+        </div>
+        <div class="field" id="audit-sku-field" style="display:none">
+          <div class="fl">🎯 Filter SKU</div>
+          <select id="audit-sku-select"><option value="">All SKUs</option></select>
+        </div>
+      </div>
+
+      <!-- Status tags -->
+      <div style="margin-top:1rem">
+        <p style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:.625rem">Map your status labels <span style="font-weight:400;color:var(--text3)">(comma-separated if multiple)</span></p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.625rem">
+          <div style="background:var(--green-l);border:1px solid var(--green);border-radius:var(--rs);padding:.625rem .875rem">
+            <div style="font-size:10px;font-weight:700;color:var(--green-d);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.375rem">✅ Delivered</div>
+            <input class="status-tag-input" id="audit-s-del" placeholder="livré, delivered, done…" style="width:100%;padding:6px 8px;border:1px solid var(--border2);border-radius:var(--rx);background:var(--surface);color:var(--text);font-size:12px;outline:none">
+          </div>
+          <div style="background:var(--amber-l);border:1px solid var(--amber);border-radius:var(--rs);padding:.625rem .875rem">
+            <div style="font-size:10px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.375rem">⏳ Pending / Confirmed</div>
+            <input class="status-tag-input" id="audit-s-pend" placeholder="pending, confirmé, en cours…" style="width:100%;padding:6px 8px;border:1px solid var(--border2);border-radius:var(--rx);background:var(--surface);color:var(--text);font-size:12px;outline:none">
+          </div>
+          <div style="background:var(--red-l);border:1px solid var(--red);border-radius:var(--rs);padding:.625rem .875rem">
+            <div style="font-size:10px;font-weight:700;color:var(--red-t);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.375rem">↩ Returned / Not delivered</div>
+            <input class="status-tag-input" id="audit-s-ret" placeholder="retourné, returned, non livré…" style="width:100%;padding:6px 8px;border:1px solid var(--border2);border-radius:var(--rx);background:var(--surface);color:var(--text);font-size:12px;outline:none">
+          </div>
+          <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--rs);padding:.625rem .875rem">
+            <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.375rem">❌ Cancelled / Refused</div>
+            <input class="status-tag-input" id="audit-s-can" placeholder="annulé, cancelled, refusé…" style="width:100%;padding:6px 8px;border:1px solid var(--border2);border-radius:var(--rx);background:var(--surface);color:var(--text);font-size:12px;outline:none">
+          </div>
+        </div>
+      </div>
+
+      <!-- Cost inputs -->
+      <div style="margin-top:1rem">
+        <p style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:.625rem">Cost inputs <span style="font-weight:400;color:var(--text3)">— pulled from main calc, override if needed</span></p>
+        <div class="ga" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
+          <div class="field">
+            <div class="fl">CPL <span class="tag">USD</span></div>
+            <input type="number" id="audit-cpl" value="0.50" step="0.01" min="0">
+          </div>
+          <div class="field">
+            <div class="fl">Product Cost/Unit <span class="tag">EUR</span></div>
+            <input type="number" id="audit-cogs" value="5" step="0.01" min="0">
+          </div>
+          <div class="field">
+            <div class="fl">Total Ad Spend <span class="tag">USD</span></div>
+            <input type="number" id="audit-spend" value="0" step="1" min="0" placeholder="actual spend">
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:1rem">
+        <button class="btn bg" onclick="runAudit()" style="padding:10px 20px;font-size:13px">🔍 Run Full Audit</button>
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div id="audit-preview" class="hidden">
+      <div class="divider"></div>
+      <p style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:.375rem" id="audit-preview-lbl">Preview — first 5 rows</p>
+      <div class="ptw"><table class="ptbl" id="audit-preview-table"></table></div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="audit-results" class="hidden">
+
+    <!-- VERDICT CARD -->
+    <div id="audit-verdict-card" style="margin-top:1.25rem;border-radius:var(--r);padding:1.5rem 2rem;position:relative;overflow:hidden">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:.5rem" id="audit-verdict-label">Analysing…</div>
+      <div style="font-size:36px;font-weight:800;margin-bottom:.375rem" id="audit-verdict-title">—</div>
+      <div style="font-size:14px;opacity:.85;max-width:600px;line-height:1.5" id="audit-verdict-body">—</div>
+      <div style="position:absolute;right:2rem;top:50%;transform:translateY(-50%);font-size:72px;opacity:.15" id="audit-verdict-icon">📊</div>
+    </div>
+
+    <!-- KEY METRICS -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.75rem;margin-top:1rem" id="audit-kpis"></div>
+
+    <!-- FUNNEL + FLAGS -->
+    <div class="g2" style="margin-top:1rem">
+      <div class="card">
+        <p class="ctitle">Real lead funnel</p>
+        <div id="audit-funnel" style="display:flex;flex-direction:column;gap:.5rem"></div>
+        <div id="audit-unknowns" style="margin-top:.75rem"></div>
+      </div>
+      <div class="card">
+        <p class="ctitle">⚑ Health flags</p>
+        <div id="audit-flags" style="display:flex;flex-direction:column;gap:.5rem"></div>
+      </div>
+    </div>
+
+    <!-- REAL P&L -->
+    <div class="g2" style="margin-top:1rem">
+      <div class="card">
+        <p class="ctitle">Real P&L — from actual orders</p>
+        <div id="audit-pl"></div>
+      </div>
+      <div class="card">
+        <p class="ctitle">Per-lead breakdown (real vs assumed)</p>
+        <div id="audit-per-lead"></div>
+      </div>
+    </div>
+
+    <!-- SCALE DECISION TABLE -->
+    <div class="card" style="margin-top:1rem">
+      <p class="ctitle">📈 Scale decision table</p>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:.875rem">What happens to your profit if you scale or pull back — based on your real numbers.</p>
+      <div id="audit-scale-table" style="overflow-x:auto"></div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="card" style="margin-top:1rem;background:var(--surface2)">
+      <p class="ctitle">✅ Recommended actions</p>
+      <div id="audit-actions" style="display:flex;flex-direction:column;gap:.5rem"></div>
+    </div>
+
+  </div>
+
+</main>
+</div><!-- end page-audit -->
 const COUNTRIES={
   hungary: {flag:'🇭🇺',name:'Hungary',       curr:'HUF',fallback:0.002797,delivered:4.99,returned:5.99},
   romania: {flag:'🇷🇴',name:'Romania',       curr:'RON',fallback:0.20302, delivered:5.26,returned:6.26},
@@ -1195,8 +1356,13 @@ COD Profit Calculator · Europe
 /* ── TAB SWITCHING ── */
 function switchTab(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+name));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().includes(name==='real'?'real':'projector')));
-  if(name==='real') $('rr-cogs').value=$('productCost').value;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',
+    (name==='projector'&&b.textContent.includes('Projector'))||
+    (name==='real'&&b.textContent.includes('Estimator'))||
+    (name==='audit'&&b.textContent.includes('Audit'))
+  ));
+  if(name==='real')$('rr-cogs').value=$('productCost').value;
+  if(name==='audit'){$('audit-cpl').value=$('cpl').value;$('audit-cogs').value=$('productCost').value;}
 }
 
 /* ── REAL RESULTS ── */
@@ -1360,6 +1526,293 @@ function rrLiveCalc(){
 }
 
 rrInitSpendRow();
+
+/* ══ ORDERS AUDIT ══ */
+let auditRows=[],auditHdrs=[];
+
+// switchTab update
+const _origSwitch=switchTab;
+// (already handles 'audit' via classList toggle)
+
+const auditUz=$('audit-uzone');
+auditUz.addEventListener('click',()=>$('audit-file').click());
+auditUz.addEventListener('dragover',e=>{e.preventDefault();auditUz.classList.add('drag')});
+auditUz.addEventListener('dragleave',()=>auditUz.classList.remove('drag'));
+auditUz.addEventListener('drop',e=>{e.preventDefault();auditUz.classList.remove('drag');auditHandleFile(e.dataTransfer.files[0])});
+$('audit-file').addEventListener('change',e=>{auditHandleFile(e.target.files[0]);e.target.value='';});
+
+function auditHandleFile(file){
+  if(!file)return;
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(ext==='csv')Papa.parse(file,{header:true,skipEmptyLines:true,complete:r=>{if(!r.data.length){al('audit-upload-status','No data.','error');return;}auditRows=r.data;auditHdrs=r.meta.fields||[];auditSetup(file.name);},error:e=>al('audit-upload-status','CSV error: '+e.message,'error')});
+  else if(['xlsx','xls'].includes(ext)){const rd=new FileReader();rd.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:'binary'});const ws=wb.Sheets[wb.SheetNames[0]];const data=XLSX.utils.sheet_to_json(ws,{defval:''});if(!data.length){al('audit-upload-status','No data.','error');return;}auditRows=data;auditHdrs=Object.keys(data[0]);auditSetup(file.name);}catch(err){al('audit-upload-status','Excel error: '+err.message,'error');}};rd.readAsBinaryString(file);}
+  else al('audit-upload-status','Upload .csv, .xlsx or .xls','error');
+}
+
+function auditSetup(fname){
+  al('audit-upload-status','✅ <strong>'+fname+'</strong> — '+auditRows.length.toLocaleString()+' rows. Map columns then click Run Audit.','info');
+  const opts=auditHdrs.map(h=>`<option value="${h}">${h}</option>`).join(''),none='<option value="">— skip —</option>';
+  ['audit-col-status','audit-col-total','audit-col-qty','audit-col-sku','audit-col-date'].forEach(id=>{$(id).innerHTML=none+opts;});
+  $('audit-col-status').value=guess(auditHdrs,['status','statut','etat','état','state','phase','order_status']);
+  $('audit-col-total').value=guess(auditHdrs,TKW);
+  $('audit-col-qty').value=guess(auditHdrs,QKW);
+  $('audit-col-sku').value=guess(auditHdrs,SKW);
+  $('audit-col-date').value=guess(auditHdrs,['date','created','order_date','day','jour','created_at']);
+  $('audit-cpl').value=$('cpl').value;
+  $('audit-cogs').value=$('productCost').value;
+  auditAutoDetectStatuses();
+  auditBuildSKU();
+  $('audit-col-sku').onchange=auditBuildSKU;
+  $('audit-mapper').classList.remove('hidden');
+  auditRenderPreview(auditRows.slice(0,5));
+}
+
+function auditAutoDetectStatuses(){
+  const sc=$('audit-col-status').value;if(!sc)return;
+  const vals=[...new Set(auditRows.map(r=>String(r[sc]||'').trim().toLowerCase()).filter(Boolean))];
+  const mk=kws=>vals.filter(v=>kws.some(k=>v.includes(k))).join(', ');
+  $('audit-s-del').value=mk(['livré','delivered','livre','success','done','réussi','shipped']);
+  $('audit-s-pend').value=mk(['pending','confirmé','confirmed','en cours','processing','en attente','in transit']);
+  $('audit-s-ret').value=mk(['retourné','returned','non livré','not delivered','failed','refusé par','renvoyé']);
+  $('audit-s-can').value=mk(['annulé','cancelled','canceled','refused','refusé','no answer','faux']);
+}
+
+function auditBuildSKU(){
+  const sc=$('audit-col-sku').value,sel=$('audit-sku-select'),f=$('audit-sku-field');
+  if(!sc){sel.innerHTML='<option value="">All SKUs</option>';f.style.display='none';return;}
+  const vals=[...new Set(auditRows.map(r=>String(r[sc]||'').trim()).filter(Boolean))].sort();
+  sel.innerHTML='<option value="">All ('+auditRows.length+')</option>'+vals.map(v=>`<option value="${v}">${v}</option>`).join('');
+  f.style.display='block';
+}
+
+function auditRenderPreview(rows){
+  const h=auditHdrs.slice(0,9);
+  let t='<tr>'+h.map(x=>`<th>${x}</th>`).join('')+'</tr>';
+  rows.forEach(r=>{t+='<tr>'+h.map(x=>`<td>${r[x]??''}</td>`).join('')+'</tr>';});
+  $('audit-preview-table').innerHTML=t;$('audit-preview').classList.remove('hidden');
+}
+
+function runAudit(){
+  const sc=$('audit-col-status').value;
+  if(!sc){al('audit-upload-status','Please select the Status column first.','warn');return;}
+  const tc=$('audit-col-total').value,qc=$('audit-col-qty').value,skuC=$('audit-col-sku').value,dc=$('audit-col-date').value;
+  const tagsDel=parseTags($('audit-s-del').value);
+  const tagsPend=parseTags($('audit-s-pend').value);
+  const tagsRet=parseTags($('audit-s-ret').value);
+  const tagsCan=parseTags($('audit-s-can').value);
+  const cpl=parseFloat($('audit-cpl').value)||0;
+  const cogsEur=parseFloat($('audit-cogs').value)||0;
+  const totalAdSpend=parseFloat($('audit-spend').value)||0;
+  const eu=parseFloat($('eurUsd').value)||FEUR;
+  const l2e=parseFloat($('localToEur').value)||getC().fallback;
+  const c=getC();
+  const cogsUSD=cogsEur*eu;
+  const cfU=CC_CONF*eu,dlU=c.delivered*eu,cdU=CC_DEL*eu,retU=c.returned*eu,tdU=dlU+cdU;
+
+  const selectedSKU=$('audit-sku-select').value;
+  let rows=auditRows;
+  if(selectedSKU&&skuC)rows=rows.filter(r=>String(r[skuC]||'').trim()===selectedSKU);
+
+  const classify=v=>{
+    const s=String(v||'').trim().toLowerCase();
+    if(tagsDel.length&&tagsDel.some(t=>s.includes(t)))return'delivered';
+    if(tagsRet.length&&tagsRet.some(t=>s.includes(t)))return'returned';
+    if(tagsPend.length&&tagsPend.some(t=>s.includes(t)))return'pending';
+    if(tagsCan.length&&tagsCan.some(t=>s.includes(t)))return'cancelled';
+    return'unknown';
+  };
+
+  let counts={delivered:0,pending:0,returned:0,cancelled:0,unknown:0};
+  let delLocal=0,delQty=0,allLocal=0;
+  const unknownVals=new Set();
+
+  rows.forEach(r=>{
+    const cls=classify(r[sc]);counts[cls]++;
+    const t=tc?pn(r[tc]):NaN,q=qc?pn(r[qc]):NaN;
+    if(!isNaN(t)&&t>0)allLocal+=t;
+    if(cls==='delivered'){if(!isNaN(t)&&t>0)delLocal+=t;delQty+=(!isNaN(q)&&q>0)?q:1;}
+    if(cls==='unknown')unknownVals.add(String(r[sc]||'').trim());
+  });
+
+  const total=rows.length;
+  const totalConfirmed=counts.delivered+counts.pending;
+  const realCR=total>0?totalConfirmed/total:0;
+  const realDR=totalConfirmed>0?counts.delivered/totalConfirmed:0;
+  const retRate=totalConfirmed>0?counts.returned/totalConfirmed:0;
+  const canRate=total>0?counts.cancelled/total:0;
+  const realAOVLocal=counts.delivered>0?delLocal/counts.delivered:0;
+  const realAOVUSD=realAOVLocal*l2e*eu;
+  const realAOQ=counts.delivered>0?delQty/counts.delivered:1;
+
+  // Real P&L
+  const revenue=counts.delivered*realAOVUSD*(1-COD);
+  const codFees=counts.delivered*realAOVUSD*COD;
+  const adSpend=totalAdSpend>0?totalAdSpend:(cpl>0?total*cpl:0);
+  const confFees=totalConfirmed*cfU;
+  const delFees=counts.delivered*tdU;
+  const retFees=counts.returned*retU;
+  const cogsCost=counts.delivered*realAOQ*cogsUSD;
+  const net=revenue-adSpend-confFees-delFees-retFees-cogsCost;
+  const profitPerLead=total>0?net/total:0;
+  const margin=revenue>0?net/revenue:0;
+  const roas=adSpend>0?revenue/adSpend:0;
+
+  // ── VERDICT LOGIC ──
+  let verdict,verdictLabel,verdictBody,verdictColor,verdictIcon,verdictBg;
+  const profOk=profitPerLead>0;
+  const crOk=realCR>=0.50;
+  const drOk=realDR>=0.55;
+  const retOk=retRate<=0.35;
+  const marginOk=margin>=0.15;
+
+  const score=[profOk,crOk,drOk,retOk,marginOk].filter(Boolean).length;
+
+  if(score>=4&&profOk){
+    verdict='🚀 SCALE'; verdictLabel='Decision: Scale ads';
+    verdictBody='Your real numbers are healthy — profit per lead is positive, rates are solid. This is the right time to increase your ad budget. Focus on keeping your CPL stable as you scale.';
+    verdictColor='#fff';verdictBg='linear-gradient(135deg,#0f6e56,#14a37f)';verdictIcon='🚀';
+  } else if(score>=3&&profOk){
+    verdict='📈 SCALE CAREFULLY'; verdictLabel='Decision: Cautious scale';
+    verdictBody='You\'re profitable but some metrics need watching. You can scale, but increase budget gradually (20-30% per week) and monitor your return rate and delivery rate closely before pushing further.';
+    verdictColor='#fff';verdictBg='linear-gradient(135deg,#1a5fa8,#2980b9)';verdictIcon='📈';
+  } else if(profOk&&score===2){
+    verdict='⏸ WAIT & OPTIMISE'; verdictLabel='Decision: Hold budget, fix issues first';
+    verdictBody='You\'re technically profitable but key metrics are underperforming. Scaling now would amplify the problems. Focus on the flagged issues below before increasing spend.';
+    verdictColor='var(--text)';verdictBg='var(--amber-l)';verdictIcon='⏸';
+  } else if(!profOk&&score>=2){
+    verdict='🔧 FIX BEFORE SCALING'; verdictLabel='Decision: Do not scale — fix funnel first';
+    verdictBody='You\'re losing money per lead right now. Adding more budget will just increase losses. The issues are fixable — address the flags below first.';
+    verdictColor='var(--text)';verdictBg='var(--red-l)';verdictIcon='🔧';
+  } else {
+    verdict='🛑 STOP ADS'; verdictLabel='Decision: Pause campaigns immediately';
+    verdictBody='Multiple critical metrics are in the red and you\'re losing money on each lead. Pause spend, audit your funnel completely, and only restart once you\'ve fixed the root causes.';
+    verdictColor='#fff';verdictBg='linear-gradient(135deg,#c0392b,#e74c3c)';verdictIcon='🛑';
+  }
+
+  // Render verdict
+  const vc=$('audit-verdict-card');
+  vc.style.background=verdictBg;vc.style.color=verdictColor;
+  $('audit-verdict-label').textContent=verdictLabel;
+  $('audit-verdict-title').textContent=verdict;
+  $('audit-verdict-body').textContent=verdictBody;
+  $('audit-verdict-icon').textContent=verdictIcon;
+
+  // KPIs
+  const kpiData=[
+    {l:'Total leads',v:fn(total),sub:'in sheet',ok:null},
+    {l:'Real CR',v:pct(realCR*100),sub:fn(totalConfirmed)+' confirmed',ok:crOk},
+    {l:'Real DR',v:pct(realDR*100),sub:fn(counts.delivered)+' delivered',ok:drOk},
+    {l:'Return rate',v:pct(retRate*100),sub:fn(counts.returned)+' returned',ok:retOk},
+    {l:'Real AOV',v:realAOVLocal>0?Math.round(realAOVLocal).toLocaleString()+' '+c.curr:'—',sub:realAOVLocal>0?usd(realAOVUSD):'no delivered orders',ok:null},
+    {l:'Profit / lead',v:(profitPerLead>=0?'+':'')+usd(profitPerLead),sub:'actual',ok:profOk},
+    {l:'Net profit',v:(net>=0?'+':'')+usd(net,0),sub:'real total',ok:profOk},
+    {l:'Real margin',v:pct(margin*100),sub:'after all costs',ok:marginOk},
+    {l:'ROAS',v:adSpend>0?roas.toFixed(2)+'x':'—',sub:'revenue/ad spend',ok:roas>=1.5},
+  ];
+  $('audit-kpis').innerHTML=kpiData.map(k=>{
+    const dot=k.ok===null?'':'<span style="width:7px;height:7px;border-radius:50%;background:'+(k.ok?'var(--green)':'var(--red)')+'display:inline-block;margin-left:4px"></span>';
+    return`<div class="chip" style="border-left:3px solid ${k.ok===null?'var(--border2)':k.ok?'var(--green)':'var(--red)'}"><div class="clbl">${k.l} ${k.ok!==null?'<span style="font-size:9px">'+(k.ok?'✓':'✗')+'</span>':''}</div><div class="cval" style="font-size:17px;color:${k.ok===null?'var(--text)':k.ok?'var(--green)':'var(--red)'}">${k.v}</div><div style="font-size:10px;color:var(--text3)">${k.sub}</div></div>`;
+  }).join('');
+
+  // Funnel bars
+  const funnelSteps=[
+    {l:'Total leads',v:total,pct2:100,col:'var(--text)'},
+    {l:'Confirmed / Pending',v:totalConfirmed,pct2:total>0?totalConfirmed/total*100:0,col:'var(--amber)'},
+    {l:'Delivered',v:counts.delivered,pct2:total>0?counts.delivered/total*100:0,col:'var(--green)'},
+    {l:'Returned',v:counts.returned,pct2:total>0?counts.returned/total*100:0,col:'var(--red)'},
+    {l:'Cancelled / Refused',v:counts.cancelled,pct2:total>0?counts.cancelled/total*100:0,col:'var(--text3)'},
+    {l:'Unknown status',v:counts.unknown,pct2:total>0?counts.unknown/total*100:0,col:'var(--border2)'},
+  ].filter(s=>s.v>0);
+  $('audit-funnel').innerHTML=funnelSteps.map(s=>`
+    <div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+        <span style="color:var(--text2)">${s.l}</span>
+        <span style="font-weight:600;color:${s.col}">${fn(s.v)} <span style="font-size:11px;font-weight:400;color:var(--text3)">(${s.pct2.toFixed(1)}%)</span></span>
+      </div>
+      <div style="height:6px;background:var(--surface3);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${s.pct2}%;background:${s.col};border-radius:3px;transition:width .5s"></div>
+      </div>
+    </div>`).join('');
+
+  if(counts.unknown>0)$('audit-unknowns').innerHTML=`<div class="alert warn" style="margin-top:0;font-size:11px">⚠ ${counts.unknown} unmapped: <strong>${[...unknownVals].slice(0,8).join(', ')}</strong></div>`;
+  else $('audit-unknowns').innerHTML='';
+
+  // Health flags
+  const flags=[];
+  if(!crOk)flags.push({sev:'red',icon:'🔴',msg:'Low confirmation rate ('+pct(realCR*100)+') — target ≥50%. Check call center quality, lead quality, or product-market fit.'});
+  if(!drOk)flags.push({sev:'red',icon:'🔴',msg:'Low delivery rate ('+pct(realDR*100)+') — target ≥55%. Customers are confirming but not receiving orders. Investigate logistics.'});
+  if(!retOk)flags.push({sev:'red',icon:'🔴',msg:'High return rate ('+pct(retRate*100)+') — target <35%. Product expectation mismatch or quality issues. Review creatives & product description.'});
+  if(!profOk)flags.push({sev:'red',icon:'🔴',msg:'Losing money per lead ('+usd(profitPerLead)+'). Every lead costs more than it generates.'});
+  if(canRate>0.30)flags.push({sev:'amber',icon:'🟡',msg:'High cancel/refuse rate ('+pct(canRate*100)+'). Leads aren\'t interested — ad targeting may be off.'});
+  if(realAOVLocal<1&&counts.delivered>0)flags.push({sev:'amber',icon:'🟡',msg:'No or very low AOV detected. Check if the order total column is correctly mapped.'});
+  if(counts.unknown>total*0.10)flags.push({sev:'amber',icon:'🟡',msg:counts.unknown+' orders ('+pct(counts.unknown/total*100)+') have unmapped status. Map them for accurate results.'});
+  if(crOk&&drOk&&retOk&&profOk)flags.push({sev:'green',icon:'🟢',msg:'All key metrics are healthy. Your funnel is working well.'});
+  if(roas>0&&roas<1.3)flags.push({sev:'amber',icon:'🟡',msg:'Low ROAS ('+roas.toFixed(2)+'x). Revenue barely covers ad spend. Consider improving AOV or reducing CPL.'});
+
+  $('audit-flags').innerHTML=flags.map(f=>`<div style="display:flex;gap:.625rem;align-items:flex-start;padding:.625rem .75rem;border-radius:var(--rs);background:var(--surface2);font-size:12px;line-height:1.45">
+    <span style="flex-shrink:0">${f.icon}</span><span style="color:var(--text2)">${f.msg}</span></div>`).join('');
+
+  // Real P&L
+  $('audit-pl').innerHTML=[
+    ['Gross revenue',revenue,true],
+    ['COD fees (5%)',-codFees],
+    ['Ad spend'+(adSpend===totalAdSpend&&totalAdSpend>0?' (actual)':' (est.)'), -adSpend],
+    ['Confirmation fees (CC)',-confFees],
+    ['Delivery fees (logistics+CC)',-delFees],
+    ['Return fees',-retFees],
+    ['Product COGS',-cogsCost],
+  ].map(([l,v])=>`<div class="rr-plr"><span>${l}</span><span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${usd(v,0)}</span></div>`).join('')
+  +`<div class="rr-plr tot"><span>Net profit</span><span class="${net>=0?'pos':'neg'}">${net>=0?'+':''}${usd(net,0)}</span></div>`;
+
+  // Per lead vs assumed
+  const projV=getVars();
+  const assumedPPL=ppl(projV);
+  const rows2=[
+    ['Conf. rate (CR)',pct(realCR*100),pct(projV.cr*100)],
+    ['Delivery rate (DR)',pct(realDR*100),pct(projV.dr*100)],
+    ['AOV',realAOVLocal>0?Math.round(realAOVLocal).toLocaleString()+' '+c.curr:'—',Math.round(projV.aovL).toLocaleString()+' '+c.curr],
+    ['Profit / lead',(profitPerLead>=0?'+':'')+usd(profitPerLead),(assumedPPL>=0?'+':'')+usd(assumedPPL)],
+    ['Net margin',pct(margin*100),projV.aovU>0?pct((ppl(projV)/(projV.cr*projV.dr*projV.aovU*(1-COD)||1))*100):'—'],
+  ];
+  $('audit-per-lead').innerHTML='<table style="width:100%;border-collapse:collapse;font-size:12px">'
+    +'<tr><th style="text-align:left;padding:5px 0;border-bottom:1px solid var(--border2);font-size:11px;color:var(--text3)">Metric</th><th style="text-align:right;padding:5px 0;border-bottom:1px solid var(--border2);font-size:11px;color:var(--green)">Real</th><th style="text-align:right;padding:5px 0;border-bottom:1px solid var(--border2);font-size:11px;color:var(--text3)">Assumed</th></tr>'
+    +rows2.map(([l,r,a])=>`<tr><td style="padding:5px 0;border-bottom:1px solid var(--border);color:var(--text2)">${l}</td><td style="text-align:right;padding:5px 0;border-bottom:1px solid var(--border);font-weight:700;color:var(--text)">${r}</td><td style="text-align:right;padding:5px 0;border-bottom:1px solid var(--border);color:var(--text3)">${a}</td></tr>`).join('')
+    +'</table>';
+
+  // Scale table
+  const scenarios=[
+    {label:'Current',mult:1},{label:'×1.5',mult:1.5},{label:'×2',mult:2},{label:'×3',mult:3},{label:'×5',mult:5}
+  ];
+  let tbl='<table style="width:100%;border-collapse:collapse;font-size:12px;min-width:500px">';
+  tbl+='<tr style="background:var(--surface2)"><th style="padding:8px 10px;text-align:left;border-bottom:2px solid var(--border2);font-size:11px;color:var(--text3)">Scale</th><th style="padding:8px 10px;text-align:right;border-bottom:2px solid var(--border2);font-size:11px;color:var(--text3)">Budget</th><th style="padding:8px 10px;text-align:right;border-bottom:2px solid var(--border2);font-size:11px;color:var(--text3)">Leads</th><th style="padding:8px 10px;text-align:right;border-bottom:2px solid var(--border2);font-size:11px;color:var(--text3)">Delivered</th><th style="padding:8px 10px;text-align:right;border-bottom:2px solid var(--border2);font-size:11px;color:var(--text3)">Revenue</th><th style="padding:8px 10px;text-align:right;border-bottom:2px solid var(--border2);font-size:11px;color:var(--text3)">Net profit</th></tr>';
+  scenarios.forEach((sc,i)=>{
+    const sp=adSpend*sc.mult,l=cpl>0?sp/cpl:total*sc.mult;
+    const d=l*realCR*realDR,rev=d*realAOVUSD*(1-COD);
+    const n=rev-sp-l*realCR*cfU-d*tdU-l*realCR*(1-realDR)*retU-d*realAOQ*cogsUSD;
+    const isActive=i===0;
+    tbl+=`<tr style="background:${isActive?'var(--green-l)':'var(--surface)'}"><td style="padding:8px 10px;border-bottom:1px solid var(--border);font-weight:${isActive?'700':'400'}">${sc.label}${isActive?' (now)':''}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right">${usd(sp,0)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right">${fn(l)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right">${fn(d)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right">${usd(rev,0)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;font-weight:600;color:${n>=0?'var(--green)':'var(--red)'}">${n>=0?'+':''}${usd(n,0)}</td></tr>`;
+  });
+  tbl+='</table>';
+  $('audit-scale-table').innerHTML=tbl;
+
+  // Action list
+  const actions=[];
+  if(verdict.includes('SCALE'))actions.push('✅ Increase daily budget by 20–30% and monitor CPL for 48h before increasing further.','✅ Keep creatives fresh — winner creative usually decays after 7–10 days at scale.','✅ Set a return rate alert: if it exceeds '+pct(retRate*100+5)+', pause and investigate.');
+  else if(verdict.includes('CAREFULLY'))actions.push('📌 Scale budget by max 20% per week — do not double overnight.','📌 Monitor the underperforming metrics daily: '+(!crOk?'CR ':'')+ (!drOk?'DR ':'')+ (!retOk?'Return rate ':''),'📌 A/B test new creatives to lower CPL before scaling.');
+  else if(verdict.includes('WAIT')||verdict.includes('FIX')){
+    if(!crOk)actions.push('🔧 CR is low — test new angles, improve the call center script, or filter lead quality.');
+    if(!drOk)actions.push('🔧 DR is low — check logistics partner, delivery zones, and COD refusal reasons.');
+    if(!retOk)actions.push('🔧 Return rate is high — review product quality, packaging, and creative vs. reality alignment.');
+    actions.push('⏸ Hold ad spend at current level until metrics improve.');
+  } else {
+    actions.push('🛑 Pause all active campaigns immediately to stop losses.','🔍 Audit your full funnel: creative → landing page → call center → logistics.','🔧 Fix the most critical issue first: '+(flags[0]?.msg||'see flags above'));
+  }
+  $('audit-actions').innerHTML=actions.map(a=>`<div style="display:flex;gap:.625rem;padding:.625rem .875rem;background:var(--surface);border-radius:var(--rs);font-size:13px;border-left:3px solid var(--green)">${a}</div>`).join('');
+
+  $('audit-results').classList.remove('hidden');
+  $('audit-results').scrollIntoView({behavior:'smooth',block:'start'});
+  al('audit-upload-status','✅ Audit complete — '+total.toLocaleString()+' orders analysed.','info');
+}
 </script>
 </body>
 </html>
