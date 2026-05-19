@@ -853,8 +853,12 @@ input:focus,select:focus{border-color:var(--green)}
             <input type="number" id="audit-cpl" value="0.50" step="0.01" min="0">
           </div>
           <div class="field">
-            <div class="fl">Product Cost/Unit <span class="tag">EUR</span></div>
-            <input type="number" id="audit-cogs" value="5" step="0.01" min="0">
+            <div class="fl">Product Cost / item <span class="tag">EUR</span></div>
+            <input type="number" id="audit-cogs" value="4.5" step="0.01" min="0">
+          </div>
+          <div class="field">
+            <div class="fl">Items / pack <span class="tag">3 products</span></div>
+            <input type="number" id="audit-items-pack" value="3" step="1" min="1">
           </div>
           <div class="field">
             <div class="fl">Total Ad Spend <span class="tag">USD</span></div>
@@ -972,6 +976,19 @@ function switchTab(name){
 /* ── SHARED HELPERS ── */
 function parseTags(str){return(str||'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);}
 function pn(v){if(v===null||v===undefined||v==='')return NaN;return parseFloat(String(v).replace(/[^\d.,-]/g,'').replace(/,([0-9]{1,2})$/,'.$1').replace(/,/g,''));}
+
+// Orders Audit quantity parser:
+// For bundle rows like "1, 1, 1" or "2, 2, 2", this means 1 pack or 2 packs,
+// not 111 or 222. We use the first numeric quantity as the pack quantity.
+function auditPackQty(v){
+  if(v===null||v===undefined||v==='')return 1;
+  const nums=String(v).match(/\d+(?:[\.,]\d+)?/g);
+  if(!nums||!nums.length)return 1;
+  const parsed=nums.map(n=>parseFloat(n.replace(',','.'))).filter(n=>!isNaN(n)&&n>0);
+  if(!parsed.length)return 1;
+  if(parsed.length>1)return parsed[0]; // "1, 1, 1" = 1 pack, "2, 2, 2" = 2 packs
+  return parsed[0];
+}
 
 function onAOVChange(){if(iA)return;const up=parseFloat($('unitPrice').value)||1;iQ=true;$('aoq').value=((parseFloat($('aov').value)||0)/up).toFixed(2);iQ=false;calc();}
 function onAOQChange(){if(iQ)return;const up=parseFloat($('unitPrice').value)||1;iA=true;$('aov').value=((parseFloat($('aoq').value)||1)*up).toFixed(0);iA=false;calc();}
@@ -1472,7 +1489,7 @@ function rrLiveCalc(){
   const cpl=parseFloat($('cpl').value)||0;
 
   const aovUSD=aovLocal*l2e*eu;
-  const cogsUSD=cogsEur*eu;
+  const packCogsUSD=cogsItemEur*itemsPerPack*eu;
   const cfU=CC_CONF*eu,dlU=c.delivered*eu,cdU=CC_DEL*eu,retU=c.returned*eu,tdU=dlU+cdU;
   const leads=cpl>0?totalSpend/cpl:0;
   const confirmed=leads*cr,delivered=leads*cr*dr,returned=confirmed-delivered;
@@ -1604,12 +1621,13 @@ function runAudit(){
   const tagsRet=parseTags($('audit-s-ret').value);
   const tagsCan=parseTags($('audit-s-can').value);
   const cpl=parseFloat($('audit-cpl').value)||0;
-  const cogsEur=parseFloat($('audit-cogs').value)||0;
+  const cogsItemEur=parseFloat($('audit-cogs').value)||0;
+  const itemsPerPack=parseFloat($('audit-items-pack').value)||3;
   const totalAdSpend=parseFloat($('audit-spend').value)||0;
   const eu=parseFloat($('eurUsd').value)||FEUR;
   const l2e=parseFloat($('localToEur').value)||getC().fallback;
   const c=getC();
-  const cogsUSD=cogsEur*eu;
+  const packCogsUSD=cogsItemEur*itemsPerPack*eu;
   const cfU=CC_CONF*eu,dlU=c.delivered*eu,cdU=CC_DEL*eu,retU=c.returned*eu,tdU=dlU+cdU;
 
   const selectedSKU=$('audit-sku-select').value;
@@ -1631,7 +1649,7 @@ function runAudit(){
 
   rows.forEach(r=>{
     const cls=classify(r[sc]);counts[cls]++;
-    const t=tc?pn(r[tc]):NaN,q=qc?pn(r[qc]):NaN;
+    const t=tc?pn(r[tc]):NaN,q=qc?auditPackQty(r[qc]):1;
     if(!isNaN(t)&&t>0)allLocal+=t;
     if(cls==='delivered'){if(!isNaN(t)&&t>0)delLocal+=t;delQty+=(!isNaN(q)&&q>0)?q:1;}
     if(cls==='unknown')unknownVals.add(String(r[sc]||'').trim());
@@ -1653,7 +1671,7 @@ function runAudit(){
   const confFees=0; // No confirmation fee in Orders Audit: upload starts after confirmation/shipping
   const delFees=counts.delivered*tdU;
   const retFees=counts.returned*retU;
-  const cogsCost=counts.delivered*realAOQ*cogsUSD;
+  const cogsCost=delQty*packCogsUSD;
   const net=revenue-adSpend-confFees-delFees-retFees-cogsCost;
   const profitPerShipped=total>0?net/total:0; // profit per shipped order
   const margin=revenue>0?net/revenue:0;
@@ -1704,6 +1722,7 @@ function runAudit(){
     {l:'Delivery rate',v:pct(realDR*100),sub:fn(counts.delivered)+' delivered',ok:drOk},
     {l:'Return rate',v:pct(retRate*100),sub:fn(counts.returned)+' returned',ok:retOk},
     {l:'Real AOV',v:realAOVLocal>0?Math.round(realAOVLocal).toLocaleString()+' '+c.curr:'—',sub:realAOVLocal>0?usd(realAOVUSD):'no delivered orders',ok:null},
+    {l:'Avg packs / delivered',v:realAOQ.toFixed(2),sub:'from quantities column',ok:null},
     {l:'Profit / shipped',v:(profitPerShipped>=0?'+':'')+usd(profitPerShipped),sub:'actual',ok:profOk},
     {l:'Net profit',v:(net>=0?'+':'')+usd(net,0),sub:'real total',ok:profOk},
     {l:'Real margin',v:pct(margin*100),sub:'after all costs',ok:marginOk},
@@ -1758,7 +1777,7 @@ function runAudit(){
     ['Ad spend'+(adSpend===totalAdSpend&&totalAdSpend>0?' (actual)':' (est.)'), -adSpend],
     ['Delivery fees (logistics+CC)',-delFees],
     ['Return fees',-retFees],
-    ['Product COGS',-cogsCost],
+    ['Product COGS ('+itemsPerPack+' items × €'+cogsItemEur+'/item)',-cogsCost],
   ].map(([l,v])=>`<div class="rr-plr"><span>${l}</span><span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${usd(v,0)}</span></div>`).join('')
   +`<div class="rr-plr tot"><span>Net profit</span><span class="${net>=0?'pos':'neg'}">${net>=0?'+':''}${usd(net,0)}</span></div>`;
 
@@ -1785,7 +1804,7 @@ function runAudit(){
   scenarios.forEach((sc,i)=>{
     const sp=adSpend*sc.mult,l=cpl>0?sp/cpl:total*sc.mult;
     const d=l*realDR,rev=d*realAOVUSD*(1-COD);
-    const n=rev-sp-d*tdU-l*retRate*retU-d*realAOQ*cogsUSD;
+    const n=rev-sp-d*tdU-l*retRate*retU-d*realAOQ*packCogsUSD;
     const isActive=i===0;
     tbl+=`<tr style="background:${isActive?'var(--green-l)':'var(--surface)'}"><td style="padding:8px 10px;border-bottom:1px solid var(--border);font-weight:${isActive?'700':'400'}">${sc.label}${isActive?' (now)':''}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right">${usd(sp,0)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right">${fn(l)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right">${fn(d)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right">${usd(rev,0)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;font-weight:600;color:${n>=0?'var(--green)':'var(--red)'}">${n>=0?'+':''}${usd(n,0)}</td></tr>`;
   });
