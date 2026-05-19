@@ -776,14 +776,14 @@ input:focus,select:focus{border-color:var(--green)}
 <div id="page-audit" class="page">
 <main>
 
-  <div class="sdiv"><span class="sdivc">📋 Orders Audit — Real P&L from your actual data</span><span class="sdivl"></span></div>
+  <div class="sdiv"><span class="sdivc">📋 Orders Audit — Real P&L from confirmed leads</span><span class="sdivl"></span></div>
 
   <!-- Upload -->
   <div class="card" id="audit-upload-card">
-    <p class="ctitle">Upload your orders sheet — one row per order/lead</p>
+    <p class="ctitle">Upload your confirmed leads sheet — one row per confirmed lead/order</p>
     <div class="uzone" id="audit-uzone" style="padding:1.5rem">
       <div style="font-size:1.75rem;margin-bottom:.5rem">📊</div>
-      <div style="font-size:14px;font-weight:600;margin-bottom:3px">Drop your orders export here</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:3px">Drop your confirmed leads export here</div>
       <div style="font-size:12px;color:var(--text2)">Google Sheets export · .csv · .xlsx · .xls</div>
       <input type="file" id="audit-file" accept=".csv,.xlsx,.xls">
     </div>
@@ -846,10 +846,10 @@ input:focus,select:focus{border-color:var(--green)}
 
       <!-- Cost inputs -->
       <div style="margin-top:1rem">
-        <p style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:.625rem">Cost inputs <span style="font-weight:400;color:var(--text3)">— pulled from main calc, override if needed</span></p>
+        <p style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:.625rem">Cost inputs <span style="font-weight:400;color:var(--text3)">— audit assumes uploaded rows are already confirmed leads</span></p>
         <div class="ga" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
           <div class="field">
-            <div class="fl">CPL <span class="tag">USD</span></div>
+            <div class="fl">Cost / confirmed lead <span class="tag">USD</span></div>
             <input type="number" id="audit-cpl" value="0.50" step="0.01" min="0">
           </div>
           <div class="field">
@@ -893,7 +893,7 @@ input:focus,select:focus{border-color:var(--green)}
     <!-- FUNNEL + FLAGS -->
     <div class="g2" style="margin-top:1rem">
       <div class="card">
-        <p class="ctitle">Real lead funnel</p>
+        <p class="ctitle">Confirmed-lead funnel</p>
         <div id="audit-funnel" style="display:flex;flex-direction:column;gap:.5rem"></div>
         <div id="audit-unknowns" style="margin-top:.75rem"></div>
       </div>
@@ -910,7 +910,7 @@ input:focus,select:focus{border-color:var(--green)}
         <div id="audit-pl"></div>
       </div>
       <div class="card">
-        <p class="ctitle">Per-lead breakdown (real vs assumed)</p>
+        <p class="ctitle">Per-confirmed-lead breakdown</p>
         <div id="audit-per-lead"></div>
       </div>
     </div>
@@ -918,7 +918,7 @@ input:focus,select:focus{border-color:var(--green)}
     <!-- SCALE DECISION TABLE -->
     <div class="card" style="margin-top:1rem">
       <p class="ctitle">📈 Scale decision table</p>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:.875rem">What happens to your profit if you scale or pull back — based on your real numbers.</p>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:.875rem">What happens to your profit if you scale or pull back — based on confirmed-lead economics.</p>
       <div id="audit-scale-table" style="overflow-x:auto"></div>
     </div>
 
@@ -1553,7 +1553,7 @@ function auditHandleFile(file){
 }
 
 function auditSetup(fname){
-  al('audit-upload-status','✅ <strong>'+fname+'</strong> — '+auditRows.length.toLocaleString()+' rows. Map columns then click Run Audit.','info');
+  al('audit-upload-status','✅ <strong>'+fname+'</strong> — '+auditRows.length.toLocaleString()+' confirmed leads loaded. Map columns then click Run Audit.','info');
   const opts=auditHdrs.map(h=>`<option value="${h}">${h}</option>`).join(''),none='<option value="">— skip —</option>';
   ['audit-col-status','audit-col-total','audit-col-qty','audit-col-sku','audit-col-date'].forEach(id=>{$(id).innerHTML=none+opts;});
   $('audit-col-status').value=guess(auditHdrs,['status','statut','etat','état','state','phase','order_status']);
@@ -1638,10 +1638,10 @@ function runAudit(){
   });
 
   const total=rows.length;
-  const totalConfirmed=counts.delivered+counts.pending;
-  const realCR=total>0?totalConfirmed/total:0;
-  const realDR=totalConfirmed>0?counts.delivered/totalConfirmed:0;
-  const retRate=totalConfirmed>0?counts.returned/totalConfirmed:0;
+  const totalConfirmed=total; // Orders Audit upload = confirmed leads, not raw leads
+  const realCR=1; // kept internally only for compatibility with older comparison fields
+  const realDR=total>0?counts.delivered/total:0;
+  const retRate=total>0?counts.returned/total:0;
   const canRate=total>0?counts.cancelled/total:0;
   const realAOVLocal=counts.delivered>0?delLocal/counts.delivered:0;
   const realAOVUSD=realAOVLocal*l2e*eu;
@@ -1651,24 +1651,23 @@ function runAudit(){
   const revenue=counts.delivered*realAOVUSD*(1-COD);
   const codFees=counts.delivered*realAOVUSD*COD;
   const adSpend=totalAdSpend>0?totalAdSpend:(cpl>0?total*cpl:0);
-  const confFees=totalConfirmed*cfU;
+  const confFees=total*cfU;
   const delFees=counts.delivered*tdU;
   const retFees=counts.returned*retU;
   const cogsCost=counts.delivered*realAOQ*cogsUSD;
   const net=revenue-adSpend-confFees-delFees-retFees-cogsCost;
-  const profitPerLead=total>0?net/total:0;
+  const profitPerLead=total>0?net/total:0; // profit per confirmed lead
   const margin=revenue>0?net/revenue:0;
   const roas=adSpend>0?revenue/adSpend:0;
 
   // ── VERDICT LOGIC ──
   let verdict,verdictLabel,verdictBody,verdictColor,verdictIcon,verdictBg;
   const profOk=profitPerLead>0;
-  const crOk=realCR>=0.50;
   const drOk=realDR>=0.55;
   const retOk=retRate<=0.35;
   const marginOk=margin>=0.15;
 
-  const score=[profOk,crOk,drOk,retOk,marginOk].filter(Boolean).length;
+  const score=[profOk,drOk,retOk,marginOk].filter(Boolean).length;
 
   if(score>=4&&profOk){
     verdict='🚀 SCALE'; verdictLabel='Decision: Scale ads';
@@ -1702,9 +1701,8 @@ function runAudit(){
 
   // KPIs
   const kpiData=[
-    {l:'Total leads',v:fn(total),sub:'in sheet',ok:null},
-    {l:'Real CR',v:pct(realCR*100),sub:fn(totalConfirmed)+' confirmed',ok:crOk},
-    {l:'Real DR',v:pct(realDR*100),sub:fn(counts.delivered)+' delivered',ok:drOk},
+    {l:'Confirmed leads',v:fn(total),sub:'uploaded rows',ok:null},
+    {l:'Delivery rate',v:pct(realDR*100),sub:fn(counts.delivered)+' delivered',ok:drOk},
     {l:'Return rate',v:pct(retRate*100),sub:fn(counts.returned)+' returned',ok:retOk},
     {l:'Real AOV',v:realAOVLocal>0?Math.round(realAOVLocal).toLocaleString()+' '+c.curr:'—',sub:realAOVLocal>0?usd(realAOVUSD):'no delivered orders',ok:null},
     {l:'Profit / lead',v:(profitPerLead>=0?'+':'')+usd(profitPerLead),sub:'actual',ok:profOk},
@@ -1719,8 +1717,8 @@ function runAudit(){
 
   // Funnel bars
   const funnelSteps=[
-    {l:'Total leads',v:total,pct2:100,col:'var(--text)'},
-    {l:'Confirmed / Pending',v:totalConfirmed,pct2:total>0?totalConfirmed/total*100:0,col:'var(--amber)'},
+    {l:'Confirmed leads',v:total,pct2:100,col:'var(--text)'},
+    {l:'Pending confirmed',v:counts.pending,pct2:total>0?counts.pending/total*100:0,col:'var(--amber)'},
     {l:'Delivered',v:counts.delivered,pct2:total>0?counts.delivered/total*100:0,col:'var(--green)'},
     {l:'Returned',v:counts.returned,pct2:total>0?counts.returned/total*100:0,col:'var(--red)'},
     {l:'Cancelled / Refused',v:counts.cancelled,pct2:total>0?counts.cancelled/total*100:0,col:'var(--text3)'},
@@ -1742,11 +1740,10 @@ function runAudit(){
 
   // Health flags
   const flags=[];
-  if(!crOk)flags.push({sev:'red',icon:'🔴',msg:'Low confirmation rate ('+pct(realCR*100)+') — target ≥50%. Check call center quality, lead quality, or product-market fit.'});
-  if(!drOk)flags.push({sev:'red',icon:'🔴',msg:'Low delivery rate ('+pct(realDR*100)+') — target ≥55%. Customers are confirming but not receiving orders. Investigate logistics.'});
+  if(!drOk)flags.push({sev:'red',icon:'🔴',msg:'Low delivery rate ('+pct(realDR*100)+') — target ≥55%. Confirmed customers are not receiving orders. Investigate logistics.'});
   if(!retOk)flags.push({sev:'red',icon:'🔴',msg:'High return rate ('+pct(retRate*100)+') — target <35%. Product expectation mismatch or quality issues. Review creatives & product description.'});
-  if(!profOk)flags.push({sev:'red',icon:'🔴',msg:'Losing money per lead ('+usd(profitPerLead)+'). Every lead costs more than it generates.'});
-  if(canRate>0.30)flags.push({sev:'amber',icon:'🟡',msg:'High cancel/refuse rate ('+pct(canRate*100)+'). Leads aren\'t interested — ad targeting may be off.'});
+  if(!profOk)flags.push({sev:'red',icon:'🔴',msg:'Losing money per confirmed lead ('+usd(profitPerLead)+'). Every confirmed lead costs more than it generates.'});
+  if(canRate>0.30)flags.push({sev:'amber',icon:'🟡',msg:'High cancel/refuse rate ('+pct(canRate*100)+'). Many confirmed leads are cancelling/refusing before delivery.'});
   if(realAOVLocal<1&&counts.delivered>0)flags.push({sev:'amber',icon:'🟡',msg:'No or very low AOV detected. Check if the order total column is correctly mapped.'});
   if(counts.unknown>total*0.10)flags.push({sev:'amber',icon:'🟡',msg:counts.unknown+' orders ('+pct(counts.unknown/total*100)+') have unmapped status. Map them for accurate results.'});
   if(crOk&&drOk&&retOk&&profOk)flags.push({sev:'green',icon:'🟢',msg:'All key metrics are healthy. Your funnel is working well.'});
@@ -1771,10 +1768,9 @@ function runAudit(){
   const projV=getVars();
   const assumedPPL=ppl(projV);
   const rows2=[
-    ['Conf. rate (CR)',pct(realCR*100),pct(projV.cr*100)],
     ['Delivery rate (DR)',pct(realDR*100),pct(projV.dr*100)],
     ['AOV',realAOVLocal>0?Math.round(realAOVLocal).toLocaleString()+' '+c.curr:'—',Math.round(projV.aovL).toLocaleString()+' '+c.curr],
-    ['Profit / lead',(profitPerLead>=0?'+':'')+usd(profitPerLead),(assumedPPL>=0?'+':'')+usd(assumedPPL)],
+    ['Profit / confirmed lead',(profitPerLead>=0?'+':'')+usd(profitPerLead),(assumedPPL>=0?'+':'')+usd(assumedPPL)],
     ['Net margin',pct(margin*100),projV.aovU>0?pct((ppl(projV)/(projV.cr*projV.dr*projV.aovU*(1-COD)||1))*100):'—'],
   ];
   $('audit-per-lead').innerHTML='<table style="width:100%;border-collapse:collapse;font-size:12px">'
@@ -1787,11 +1783,11 @@ function runAudit(){
     {label:'Current',mult:1},{label:'×1.5',mult:1.5},{label:'×2',mult:2},{label:'×3',mult:3},{label:'×5',mult:5}
   ];
   let tbl='<table style="width:100%;border-collapse:collapse;font-size:12px;min-width:500px">';
-  tbl+='<tr style="background:var(--surface2)"><th style="padding:8px 10px;text-align:left;border-bottom:2px solid var(--border2);font-size:11px;color:var(--text3)">Scale</th><th style="padding:8px 10px;text-align:right;border-bottom:2px solid var(--border2);font-size:11px;color:var(--text3)">Budget</th><th style="padding:8px 10px;text-align:right;border-bottom:2px solid var(--border2);font-size:11px;color:var(--text3)">Leads</th><th style="padding:8px 10px;text-align:right;border-bottom:2px solid var(--border2);font-size:11px;color:var(--text3)">Delivered</th><th style="padding:8px 10px;text-align:right;border-bottom:2px solid var(--border2);font-size:11px;color:var(--text3)">Revenue</th><th style="padding:8px 10px;text-align:right;border-bottom:2px solid var(--border2);font-size:11px;color:var(--text3)">Net profit</th></tr>';
+  tbl+='<tr style="background:var(--surface2)"><th style="padding:8px 10px;text-align:left;border-bottom:2px solid var(--border2);font-size:11px;color:var(--text3)">Scale</th><th style="padding:8px 10px;text-align:right;border-bottom:2px solid var(--border2);font-size:11px;color:var(--text3)">Budget</th><th style="padding:8px 10px;text-align:right;border-bottom:2px solid var(--border2);font-size:11px;color:var(--text3)">Confirmed leads</th><th style="padding:8px 10px;text-align:right;border-bottom:2px solid var(--border2);font-size:11px;color:var(--text3)">Delivered</th><th style="padding:8px 10px;text-align:right;border-bottom:2px solid var(--border2);font-size:11px;color:var(--text3)">Revenue</th><th style="padding:8px 10px;text-align:right;border-bottom:2px solid var(--border2);font-size:11px;color:var(--text3)">Net profit</th></tr>';
   scenarios.forEach((sc,i)=>{
     const sp=adSpend*sc.mult,l=cpl>0?sp/cpl:total*sc.mult;
-    const d=l*realCR*realDR,rev=d*realAOVUSD*(1-COD);
-    const n=rev-sp-l*realCR*cfU-d*tdU-l*realCR*(1-realDR)*retU-d*realAOQ*cogsUSD;
+    const d=l*realDR,rev=d*realAOVUSD*(1-COD);
+    const n=rev-sp-l*cfU-d*tdU-l*retRate*retU-d*realAOQ*cogsUSD;
     const isActive=i===0;
     tbl+=`<tr style="background:${isActive?'var(--green-l)':'var(--surface)'}"><td style="padding:8px 10px;border-bottom:1px solid var(--border);font-weight:${isActive?'700':'400'}">${sc.label}${isActive?' (now)':''}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right">${usd(sp,0)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right">${fn(l)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right">${fn(d)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right">${usd(rev,0)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;font-weight:600;color:${n>=0?'var(--green)':'var(--red)'}">${n>=0?'+':''}${usd(n,0)}</td></tr>`;
   });
@@ -1801,9 +1797,8 @@ function runAudit(){
   // Action list
   const actions=[];
   if(verdict.includes('SCALE'))actions.push('✅ Increase daily budget by 20–30% and monitor CPL for 48h before increasing further.','✅ Keep creatives fresh — winner creative usually decays after 7–10 days at scale.','✅ Set a return rate alert: if it exceeds '+pct(retRate*100+5)+', pause and investigate.');
-  else if(verdict.includes('CAREFULLY'))actions.push('📌 Scale budget by max 20% per week — do not double overnight.','📌 Monitor the underperforming metrics daily: '+(!crOk?'CR ':'')+ (!drOk?'DR ':'')+ (!retOk?'Return rate ':''),'📌 A/B test new creatives to lower CPL before scaling.');
+  else if(verdict.includes('CAREFULLY'))actions.push('📌 Scale budget by max 20% per week — do not double overnight.','📌 Monitor the underperforming metrics daily: '+(!drOk?'DR ':'')+ (!retOk?'Return rate ':''),'📌 A/B test new creatives to lower CPL before scaling.');
   else if(verdict.includes('WAIT')||verdict.includes('FIX')){
-    if(!crOk)actions.push('🔧 CR is low — test new angles, improve the call center script, or filter lead quality.');
     if(!drOk)actions.push('🔧 DR is low — check logistics partner, delivery zones, and COD refusal reasons.');
     if(!retOk)actions.push('🔧 Return rate is high — review product quality, packaging, and creative vs. reality alignment.');
     actions.push('⏸ Hold ad spend at current level until metrics improve.');
@@ -1814,7 +1809,7 @@ function runAudit(){
 
   $('audit-results').classList.remove('hidden');
   $('audit-results').scrollIntoView({behavior:'smooth',block:'start'});
-  al('audit-upload-status','✅ Audit complete — '+total.toLocaleString()+' orders analysed.','info');
+  al('audit-upload-status','✅ Audit complete — '+total.toLocaleString()+' confirmed leads analysed.','info');
 }
 </script>
 </body>
