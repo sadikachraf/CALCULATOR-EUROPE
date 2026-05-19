@@ -956,6 +956,18 @@ const pct=n=>n.toFixed(1)+'%';
 let iA=false,iQ=false;
 function getC(){return COUNTRIES[$('country').value]}
 
+/* ── TAB SWITCHING ── must be declared early so onclick handlers can find it ── */
+function switchTab(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+name));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',
+    (name==='projector'&&b.textContent.includes('Projector'))||
+    (name==='real'&&b.textContent.includes('Estimator'))||
+    (name==='audit'&&b.textContent.includes('Audit'))
+  ));
+  if(name==='real'&&$('rr-cogs'))$('rr-cogs').value=$('productCost').value;
+  if(name==='audit'&&$('audit-cpl')){$('audit-cpl').value=$('cpl').value;$('audit-cogs').value=$('productCost').value;}
+}
+
 function onAOVChange(){if(iA)return;const up=parseFloat($('unitPrice').value)||1;iQ=true;$('aoq').value=((parseFloat($('aov').value)||0)/up).toFixed(2);iQ=false;calc();}
 function onAOQChange(){if(iQ)return;const up=parseFloat($('unitPrice').value)||1;iA=true;$('aov').value=((parseFloat($('aoq').value)||1)*up).toFixed(0);iA=false;calc();}
 function onUnitPriceChange(){const up=parseFloat($('unitPrice').value)||1,aoq=parseFloat($('aoq').value)||1;iA=true;$('aov').value=(aoq*up).toFixed(0);iA=false;calc();}
@@ -1353,18 +1365,6 @@ COD Profit Calculator · Europe
   });
 }
 
-/* ── TAB SWITCHING ── */
-function switchTab(name){
-  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+name));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',
-    (name==='projector'&&b.textContent.includes('Projector'))||
-    (name==='real'&&b.textContent.includes('Estimator'))||
-    (name==='audit'&&b.textContent.includes('Audit'))
-  ));
-  if(name==='real')$('rr-cogs').value=$('productCost').value;
-  if(name==='audit'){$('audit-cpl').value=$('cpl').value;$('audit-cogs').value=$('productCost').value;}
-}
-
 /* ── REAL RESULTS ── */
 let rrRows=[],rrHdrs=[];
 
@@ -1529,10 +1529,6 @@ rrInitSpendRow();
 
 /* ══ ORDERS AUDIT ══ */
 let auditRows=[],auditHdrs=[];
-
-// switchTab update
-const _origSwitch=switchTab;
-// (already handles 'audit' via classList toggle)
 
 const auditUz=$('audit-uzone');
 auditUz.addEventListener('click',()=>$('audit-file').click());
