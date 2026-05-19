@@ -968,6 +968,10 @@ function switchTab(name){
   if(name==='audit'&&$('audit-cpl')){$('audit-cpl').value=$('cpl').value;$('audit-cogs').value=$('productCost').value;}
 }
 
+/* ── SHARED HELPERS ── */
+function parseTags(str){return(str||'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);}
+function pn(v){if(v===null||v===undefined||v==='')return NaN;return parseFloat(String(v).replace(/[^\d.,-]/g,'').replace(/,([0-9]{1,2})$/,'.$1').replace(/,/g,''));}
+
 function onAOVChange(){if(iA)return;const up=parseFloat($('unitPrice').value)||1;iQ=true;$('aoq').value=((parseFloat($('aov').value)||0)/up).toFixed(2);iQ=false;calc();}
 function onAOQChange(){if(iQ)return;const up=parseFloat($('unitPrice').value)||1;iA=true;$('aov').value=((parseFloat($('aoq').value)||1)*up).toFixed(0);iA=false;calc();}
 function onUnitPriceChange(){const up=parseFloat($('unitPrice').value)||1,aoq=parseFloat($('aoq').value)||1;iA=true;$('aov').value=(aoq*up).toFixed(0);iA=false;calc();}
@@ -1105,7 +1109,10 @@ function calcProj(){
 
 async function fetchRates(){
   try{
-    const r=await fetch('https://api.frankfurter.app/latest?from=EUR&to=USD,HUF,RON,PLN,CZK',{signal:AbortSignal.timeout(6000)});
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),6000);
+    const r=await fetch('https://api.frankfurter.app/latest?from=EUR&to=USD,HUF,RON,PLN,CZK',{signal:controller.signal});
+    clearTimeout(timer);
     const d=await r.json();if(!d.rates)throw 0;
     const rt=d.rates;
     $('eurUsd').value=(rt.USD||FEUR).toFixed(4);
@@ -1163,7 +1170,6 @@ function renderPreview(sample){
   sample.forEach(r=>{t+='<tr>'+h.map(x=>`<td>${r[x]??''}</td>`).join('')+'</tr>';});
   $('preview-table').innerHTML=t;$('preview-section').classList.remove('hidden');
 }
-function pn(v){if(v===null||v===undefined||v==='')return NaN;return parseFloat(String(v).replace(/[^\d.,-]/g,'').replace(/,([0-9]{1,2})$/,'.$1').replace(/,/g,''));}
 function calcFromUpload(){
   const ct=$('col-total').value;if(!ct){al('upload-status','Select the order total column.','warn');return;}
   const fr=getRows();if(!fr.length){al('upload-status','No rows for selected SKU.','warn');return;}
